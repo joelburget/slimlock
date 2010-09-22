@@ -12,6 +12,8 @@
 #include <sstream>
 #include "panel.h"
 
+#include <iostream>
+
 using namespace std;
 
 Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
@@ -23,6 +25,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
 		cfg = config;
 
     session = "";
+		cout << "here\n";
 
     // Init GC
     XGCValues gcv;
@@ -39,6 +42,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     enterfont = XftFontOpenName(Dpy, Scr, cfg->getOption("username_font").c_str());
     msgfont = XftFontOpenName(Dpy, Scr, cfg->getOption("msg_font").c_str());
 
+		cout << "here\n";
     Visual* visual = DefaultVisual(Dpy, Scr);
     Colormap colormap = DefaultColormap(Dpy, Scr);
     // NOTE: using XftColorAllocValue() would be a better solution. Lazy me.
@@ -70,6 +74,8 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
         input_pass_x = input_name_x;
         input_pass_y = input_name_y;
     }
+
+		cout << "here\n";
 
     // Load panel and background image
     string panelpng = "";

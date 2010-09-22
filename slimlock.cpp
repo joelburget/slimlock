@@ -32,6 +32,9 @@ void Login();
 void blankScreen();
 void setBackground(const string& themedir);
 void HideCursor();
+void KillAllClients(bool top);
+bool AuthenticateUser(bool focuspass);
+int CatchErrors(Display *dpy, XErrorEvent *ev);
 
 // I really didn't wanna put these globals here, but it's the only way...
 Display* dpy;
@@ -59,7 +62,7 @@ get_password() { /* only run as root */
 	struct passwd *pw;
 
 	if(geteuid() != 0)
-		die("slock: cannot retrieve password entry (make sure to suid slock)\n");
+		die("slimlock: cannot retrieve password entry (make sure to suid slimlock)\n");
 	pw = getpwuid(getuid());
 	endpwent();
 	rval =  pw->pw_passwd;
@@ -75,44 +78,30 @@ get_password() { /* only run as root */
 
 	/* drop privileges */
 	if(setgid(pw->pw_gid) < 0 || setuid(pw->pw_uid) < 0)
-		die("slock: cannot drop privileges\n");
+		die("slimlock: cannot drop privileges\n");
 	return rval;
 }
 #endif
 
 int
 main(int argc, char **argv) {
-	char curs[] = {0, 0, 0, 0, 0, 0, 0, 0};
-	char buf[32], passwd[256];
-	int num, screen;
-
-#ifndef HAVE_BSD_AUTH
-	const char *pws;
-#endif
-	unsigned int len;
-	Bool running = True;
-	Cursor invisible;
-	Display *dpy;
-	KeySym ksym;
-	Pixmap pmap;
-	Window root, w;
-	XColor black, dummy;
-	XEvent ev;
-	XSetWindowAttributes wa;
 
 	if((argc == 2) && !strcmp("-v", argv[1]))
-		die("slock-"VERSION", © 2006-2008 Anselm R Garbe\n");
+		die("slimlock-"VERSION", © 2010 Joel Burget\n");
 	else if(argc != 1)
-		die("usage: slock [-v]\n");
-
-#ifndef HAVE_BSD_AUTH
-	pws = get_password();
-#endif
+		die("usage: slimlock [-v]\n");
 
 	if(!(dpy = XOpenDisplay(0)))
-		die("slock: cannot open display\n");
-	screen = DefaultScreen(dpy);
-	root = RootWindow(dpy, screen);
+		die("slimlock: cannot open display\n");
+	scr= DefaultScreen(dpy);
+	root = RootWindow(dpy, scr);
+
+/*
+  Window RealRoot = RootWindow(dpy, scr);
+  root = XCreateSimpleWindow(dpy, RealRoot, 0, 0, 1280, 1024, 0, 0, 0);
+  XMapWindow(dpy, root);
+  XFlush(dpy);
+*/
 
     // 
     // My additions
@@ -159,12 +148,67 @@ main(int argc, char **argv) {
     }
 
     blankScreen();
+    HideCursor();
+
+
+    // Create panel
+    loginPanel = new Panel(dpy, scr, root, cfg, themedir);
+    loginPanel->SetName(cfg->getOption("default_user"));
+    bool panelClosed = true;
+
+    // Main loop
+    while (true)
+    {
+        if (panelClosed)
+        {
+            setBackground(themedir);
+            KillAllClients(false);
+            KillAllClients(true);
+            loginPanel->OpenPanel();
+        }
+        loginPanel->Reset();
+        loginPanel->SetName(cfg->getOption("default_user"));
+        //action = loginPanel->getAction();
+        loginPanel->ClosePanel();
+
+        // AuthenticateUser returns true if authenticated
+        if (!AuthenticateUser(true))
+        {
+            panelClosed = false;
+            loginPanel->ClearPanel();
+            XBell(dpy, 100);
+            continue;
+        }
+        // I think we can just exit here!
+        //Login();
+        break;
+    }
+
+    return 0;
+}
+
+void blankScreen()
+{
+    GC gc = XCreateGC(dpy, root, 0, 0);
+    XSetForeground(dpy, gc, BlackPixel(dpy, scr));
+    XFillRectangle(dpy, root, gc, 0, 0,
+                   XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                   XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+    XFlush(dpy);
+    XFreeGC(dpy, gc);
+}
+
+void setBackground(const string& themedir) {
+    string filename;
+    filename = themedir + "/background.png";
+    image = new Image;
+    bool loaded = image->Read(filename.c_str());
+    if (!loaded){ // try jpeg if png failed
+        filename = "";
         filename = themedir + "/background.jpg";
         loaded = image->Read(filename.c_str());
     }
     if (loaded) {
-    }
-
         string bgstyle = cfg->getOption("background_style");
         if (bgstyle == "stretch") {
             image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
@@ -205,4 +249,77 @@ void HideCursor()
         cursor=XCreatePixmapCursor(dpy,cursorpixmap,cursorpixmap,&black,&black,0,0);
         XDefineCursor(dpy,root,cursor);
     }
+}
+
+void KillAllClients(bool top)
+{
+    Window dummywindow;
+    Window *children;
+    unsigned int nchildren;
+    unsigned int i;
+    XWindowAttributes attr;
+
+    XSync(dpy, 0);
+    XSetErrorHandler(CatchErrors);
+
+    nchildren = 0;
+    XQueryTree(dpy, root, &dummywindow, &dummywindow, &children, &nchildren);
+    if(!top) {
+        for(i=0; i<nchildren; i++) {
+            if(XGetWindowAttributes(dpy, children[i], &attr) && (attr.map_state == IsViewable))
+                children[i] = XmuClientWindow(dpy, children[i]);
+            else
+                children[i] = 0;
+        }
+    }
+
+    for(i=0; i<nchildren; i++) {
+        if(children[i])
+            XKillClient(dpy, children[i]);
+    }
+    XFree((char *)children);
+
+    XSync(dpy, 0);
+    XSetErrorHandler(NULL);
+}
+
+bool AuthenticateUser(bool focuspass)
+{
+    if (!focuspass){
+        loginPanel->EventHandler(Panel::Get_Name);
+        switch(loginPanel->getAction()){
+            case Panel::Exit:
+            case Panel::Console:
+                cerr << APPNAME << ": Got a special command (" << loginPanel->GetName() << ")" << endl;
+                return true; // <--- This is simply fake!
+            default:
+                break;
+        }
+    }
+    loginPanel->EventHandler(Panel::Get_Passwd);
+    
+    char *encrypted, *correct;
+    struct passwd *pw;
+
+    pw = getpwnam(loginPanel->GetName().c_str());
+
+#ifdef HAVE_SHADOW
+    struct spwd *sp = getspnam(pw->pw_name);    
+    endspent();
+    if(sp)
+        correct = sp->sp_pwdp;
+    else
+#endif        // HAVE_SHADOW
+        correct = pw->pw_passwd;
+
+    if(correct == 0 || correct[0] == '\0')
+        return true;
+
+    encrypted = crypt(loginPanel->GetPasswd().c_str(), correct);
+    return ((strcmp(encrypted, correct) == 0) ? true : false);
+}
+
+int CatchErrors(Display *dpy, XErrorEvent *ev)
+{
+    return 0;
 }

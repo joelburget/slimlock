@@ -13,7 +13,7 @@
 #define _CONST_H_
 
 
-#define APPNAME    "slim"
+#define APPNAME    "slimlock"
 
 #define DISPLAY    ":0.0"
 

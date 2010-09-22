@@ -6,7 +6,6 @@ PREFIX = /usr/local
 X11INC = /usr/X11R6/include
 
 # includes and libs
-INCS = -I. -I/usr/include -I${X11INC} 
 LIBS = -L/usr/lib -lc -lcrypt -lX11 -lXext -lXft -ljpeg -lpng -lpng12 -lfreetype -lXrender -lfontconfig 
 
 # flags

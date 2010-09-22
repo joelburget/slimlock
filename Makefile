@@ -1,61 +1,32 @@
-# slock - simple screen locker
-# © 2006-2007 Anselm R. Garbe, Sander van Dijk
+# slimlock makefile
+# © 2010 Joel Burget
 
-include config.mk
+CXX = g++
+CC  = gcc
 
-SRC = slimlock.cpp
-OBJ = ${SRC:.c=.o}
+CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng12 -I/usr/include
+CXXFLAGS=$(CFLAGS)
+LDFLAGS=-lXft -lX11 -lfreetype -lXrender -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt
 
-all: options slimlock
+NAME=slimlock
+VERSION=0.1
+CFGDIR=/etc# Change me!
+PREFIX=/usr
+DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
+		-DPKGDATADIR=\"$(PREFIX)/share/slim\" -DSYSCONFDIR=\"$(CFGDIR)\"
 
-options:
-	@echo slimlock build options:
-	@echo "CXXFLAGS  = ${CXXFLAGS}"
-	@echo "LDFLAGS   = ${LDFLAGS}"
-	@echo "CXX       = ${CXX}"
-	@echo "CC        = ${CC}"
-	@echo "OBJ       = ${OBJ}"
-	@echo "OBJECTS   = ${OBJECTS}"
+OBJECTS=cfg.o image.o panel.o switchuser.o slimlock.o util.o jpeg.o png.o
 
-#.c.o:
-#	@echo CXX $<
-#	@${CC} -c ${DEFINES} ${CXXFLAGS} $<
+all: slimlock
 
-${OBJECTS}: config.mk
+slimlock: $(OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) -o $(NAME)
 
 .cpp.o:
-	@echo CXX $<
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $< -o $@
 
 .c.o:
-	@echo CXX $<
 	$(CC) $(CFLAGS) $(DEFINES) $(CUSTOM) -c $< -o $@
 
-slimlock: $(OBJECTS)
-	@echo CXX -o $@
-	@${CXX} -o $@ $(OBJECTS) ${OBJ} ${LDFLAGS} 
-
 clean:
-	@echo cleaning
-	@rm -f slimlock ${OBJ} slimlock-${VERSION}.tar.gz
-
-dist: clean
-	@echo creating dist tarball
-	@mkdir -p slimlock-${VERSION}
-	@cp -R LICENSE Makefile README config.mk ${SRC} slimlock-${VERSION}
-	@tar -cf slimlock-${VERSION}.tar slimlock-${VERSION}
-	@gzip slimlock-${VERSION}.tar
-	@rm -rf slimlock-${VERSION}
-
-install: all
-	@echo installing executable file to ${DESTDIR}${PREFIX}/bin
-	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@cp -f slimlock ${DESTDIR}${PREFIX}/bin
-	@chmod 755 ${DESTDIR}${PREFIX}/bin/slimlock
-	@chmod u+s ${DESTDIR}${PREFIX}/bin/slimlock
-
-uninstall:
-	@echo removing executable file from ${DESTDIR}${PREFIX}/bin
-	@rm -f ${DESTDIR}${PREFIX}/bin/slimlock
-
-.PHONY: all options clean dist install uninstall
+	@rm -f slimlock *.o
