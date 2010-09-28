@@ -1,4 +1,12 @@
-/* See LICENSE file for license details. */
+/* slimlock
+ * Copyright (c) 2010 Joel Burget <joelburget@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */ 
+
 #define _XOPEN_SOURCE 500
 #if HAVE_SHADOW_H
 #include <shadow.h>

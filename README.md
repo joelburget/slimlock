@@ -18,3 +18,17 @@ In order to build slimlock you need the Xlib header files.
 Running slock
 -------------
 Use the 'slimlock' command.
+
+Copyright
+---------
+slimlock copyright (c) 2010 Joel Burget
+
+SLiM is copyright (c) 2004-06 by Simone Rota, Johannes Winkelmann
+and is available under the GNU General Public License.
+See the COPYING file for the complete license.
+
+Image handling code adapted and extended from xplanet 1.0.1,
+copyright (c) 2002-04 by Hari Nair
+
+Login.app is copyright (c) 1997, 1998 by Per Liden and is 
+licensed through the GNU General Public License. 
