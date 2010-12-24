@@ -8,7 +8,7 @@
  */ 
 
 #define _XOPEN_SOURCE 500
-#if HAVE_SHADOW_H
+#if HAVE_SHADOW
 #include <shadow.h>
 #endif
 
@@ -63,53 +63,25 @@ die(const char *errstr, ...) {
 	exit(EXIT_FAILURE);
 }
 
-#ifndef HAVE_BSD_AUTH
-static const char *
-get_password() { /* only run as root */
-	const char *rval;
-	struct passwd *pw;
-
-	if(geteuid() != 0)
-		die("slimlock: cannot retrieve password entry (make sure to suid slimlock)\n");
-	pw = getpwuid(getuid());
-	endpwent();
-	rval =  pw->pw_passwd;
-
-#if HAVE_SHADOW_H
-	{
-		struct spwd *sp;
-		sp = getspnam(getenv("USER"));
-		endspent();
-		rval = sp->sp_pwdp;
-	}
-#endif
-
-	/* drop privileges */
-	if(setgid(pw->pw_gid) < 0 || setuid(pw->pw_uid) < 0)
-		die("slimlock: cannot drop privileges\n");
-	return rval;
-}
-#endif
-
-int
-main(int argc, char **argv) {
-
+int main(int argc, char **argv) {
 	if((argc == 2) && !strcmp("-v", argv[1]))
 		die("slimlock-"VERSION", © 2010 Joel Burget\n");
 	else if(argc != 1)
 		die("usage: slimlock [-v]\n");
 
-	if(!(dpy = XOpenDisplay(0)))
+	if (getuid() != 0)
+		die("Must run as root (sudo slimlock)\n");
+
+	if(!(dpy = XOpenDisplay(DISPLAY)))
 		die("slimlock: cannot open display\n");
-	scr= DefaultScreen(dpy);
+	scr = DefaultScreen(dpy);
 	root = RootWindow(dpy, scr);
 
-/*
   Window RealRoot = RootWindow(dpy, scr);
   root = XCreateSimpleWindow(dpy, RealRoot, 0, 0, 1280, 1024, 0, 0, 0);
   XMapWindow(dpy, root);
   XFlush(dpy);
-*/
+  //*/
 
     // 
     // My additions
@@ -155,9 +127,8 @@ main(int argc, char **argv) {
         }
     }
 
-    blankScreen();
+    //blankScreen();
     HideCursor();
-
 
     // Create panel
     loginPanel = new Panel(dpy, scr, root, cfg, themedir);
@@ -170,25 +141,26 @@ main(int argc, char **argv) {
         if (panelClosed)
         {
             setBackground(themedir);
-            KillAllClients(false);
-            KillAllClients(true);
             loginPanel->OpenPanel();
         }
         loginPanel->Reset();
         loginPanel->SetName(cfg->getOption("default_user"));
-        //action = loginPanel->getAction();
-        loginPanel->ClosePanel();
 
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser(true))
         {
+            printf("fail!\n");
             panelClosed = false;
             loginPanel->ClearPanel();
             XBell(dpy, 100);
             continue;
         }
         // I think we can just exit here!
-        //Login();
+        loginPanel->ClosePanel();
+
+        delete loginPanel;
+        XCloseDisplay(dpy);
+        exit(0);
         break;
     }
 
@@ -310,6 +282,9 @@ bool AuthenticateUser(bool focuspass)
     struct passwd *pw;
 
     pw = getpwnam(loginPanel->GetName().c_str());
+    endpwent();
+    if (pw == 0)
+      return false;
 
 #ifdef HAVE_SHADOW
     struct spwd *sp = getspnam(pw->pw_name);    
@@ -324,6 +299,14 @@ bool AuthenticateUser(bool focuspass)
         return true;
 
     encrypted = crypt(loginPanel->GetPasswd().c_str(), correct);
+
+    //printf("pw name: %s\n", pw->pw_name);
+    //printf("pw password: %s\n", pw->pw_passwd);
+    //printf("name: %s\n", loginPanel->GetName().c_str());
+    //printf("password: %s\n", loginPanel->GetPasswd().c_str());
+    //printf("encrypted password: %s\n", encrypted);
+    //printf("correct encrypted password: %s\n", correct);
+
     return ((strcmp(encrypted, correct) == 0) ? true : false);
 }
 
