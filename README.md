@@ -7,10 +7,6 @@ have never been.
 Slimlock reads your SLiM config files and uses the same interface. If you use
 SLiM already, then it should work for you automatically.
 
-If you're thinking about using slimlock you're either brave or dumb. It's not
-entirely secure yet, as in it's possible to close the window without entering
-your password...
-
 Requirements
 ------------
 In order to build slimlock you need the Xlib header files.  Install with 'make'
@@ -18,7 +14,7 @@ then 'make install'.
 
 Running slock
 -------------
-Use 'sudo slimlock'. I know, you shouldn't have to sudo, I'm working on it.
+Run with 'slimlock'.
 
 Copyright
 ---------

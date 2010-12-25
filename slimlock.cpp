@@ -69,16 +69,38 @@ int main(int argc, char **argv) {
 	else if(argc != 1)
 		die("usage: slimlock [-v]\n");
 
-	if (getuid() != 0)
-		die("Must run as root (sudo slimlock)\n");
+	if (geteuid() != 0)
+		die("Wrong permissions: slimlock must be owned by root with setuid flagged.\n\n"
+        "Set permissions as follows:\n"
+        "sudo chown root slimlock\n"
+        "sudo chmod ug+s slimlock\n\n"
+        "You should get something like this:\n"
+        "[joel@arch slimlock]$ ls -l | grep \"slimlock\"\n"
+        "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
+
 
 	if(!(dpy = XOpenDisplay(DISPLAY)))
 		die("slimlock: cannot open display\n");
 	scr = DefaultScreen(dpy);
 	root = RootWindow(dpy, scr);
 
+  XSetWindowAttributes wa;
+  wa.override_redirect = 1;
+  wa.background_pixel = BlackPixel(dpy, scr);
+
   Window RealRoot = RootWindow(dpy, scr);
-  root = XCreateSimpleWindow(dpy, RealRoot, 0, 0, 1280, 1024, 0, 0, 0);
+  root = XCreateWindow(dpy, 
+    RealRoot, 
+    0, 
+    0, 
+    DisplayWidth(dpy, scr), 
+    DisplayHeight(dpy, scr), 
+    0, 
+    DefaultDepth(dpy, scr), 
+    CopyFromParent,
+    DefaultVisual(dpy, scr),
+    CWOverrideRedirect | CWBackPixel,
+    &wa);
   XMapWindow(dpy, root);
   XFlush(dpy);
   //*/
