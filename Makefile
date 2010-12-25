@@ -19,6 +19,7 @@ DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
 OBJECTS=cfg.o image.o panel.o switchuser.o slimlock.o util.o jpeg.o png.o
 
 all: slimlock
+	@chmod 4755 slimlock
 
 slimlock: $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(OBJECTS) -o $(NAME)
@@ -33,4 +34,4 @@ clean:
 	@rm -f slimlock *.o
 
 install: slimlock
-	install -D -m 755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
+	@install -D -m 4755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
