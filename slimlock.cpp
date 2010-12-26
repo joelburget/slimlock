@@ -7,42 +7,29 @@
  * (at your option) any later version.
  */ 
 
-#define _XOPEN_SOURCE 500
 #if HAVE_SHADOW
 #include <shadow.h>
 #endif
 
-#include <ctype.h>
-#include <pwd.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
 #include <sys/types.h>
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/dpms.h>
 
-#if HAVE_BSD_AUTH
-#include <login_cap.h>
-#include <bsd_auth.h>
-#endif
-
-/* New Stuff */
-#include "panel.h"
 #include "cfg.h"
+#include "util.h"
+#include "panel.h"
 
 using namespace std;
 
-void Login();
-void blankScreen();
 void setBackground(const string& themedir);
 void HideCursor();
-void KillAllClients(bool top);
 bool AuthenticateUser(bool focuspass);
-int CatchErrors(Display *dpy, XErrorEvent *ev);
+string findValidRandomTheme(const string& set);
 
 // I really didn't wanna put these globals here, but it's the only way...
 Display* dpy;
@@ -64,52 +51,48 @@ die(const char *errstr, ...) {
 }
 
 int main(int argc, char **argv) {
-	if((argc == 2) && !strcmp("-v", argv[1]))
-		die("slimlock-"VERSION", © 2010 Joel Burget\n");
-	else if(argc != 1)
-		die("usage: slimlock [-v]\n");
+    if((argc == 2) && !strcmp("-v", argv[1]))
+        die("slimlock-"VERSION", © 2010 Joel Burget\n");
+    else if(argc != 1)
+        die("usage: slimlock [-v]\n");
 
-	if (geteuid() != 0)
-		die("Wrong permissions: slimlock must be owned by root with setuid flagged.\n\n"
-        "Set permissions as follows:\n"
-        "sudo chown root slimlock\n"
-        "sudo chmod ug+s slimlock\n\n"
-        "You should get something like this:\n"
-        "[joel@arch slimlock]$ ls -l | grep \"slimlock\"\n"
-        "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
+    if (geteuid() != 0)
+        die("Wrong permissions: slimlock must be owned by root with setuid "
+            "flagged.\n\n"
+            "Set permissions as follows:\n"
+            "sudo chown root slimlock && sudo chmod ug+s slimlock\n\n"
+            "You should get something like this:\n"
+            "[joel@arch slimlock]$ ls -l | grep \"slimlock\"\n"
+            "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
 
 
-	if(!(dpy = XOpenDisplay(DISPLAY)))
-		die("slimlock: cannot open display\n");
-	scr = DefaultScreen(dpy);
-	root = RootWindow(dpy, scr);
+    if(!(dpy = XOpenDisplay(DISPLAY)))
+        die("slimlock: cannot open display\n");
+    scr = DefaultScreen(dpy);
+    root = RootWindow(dpy, scr);
 
-  XSetWindowAttributes wa;
-  wa.override_redirect = 1;
-  wa.background_pixel = BlackPixel(dpy, scr);
+    XSetWindowAttributes wa;
+    wa.override_redirect = 1;
+    wa.background_pixel = BlackPixel(dpy, scr);
 
-  Window RealRoot = RootWindow(dpy, scr);
-  root = XCreateWindow(dpy, 
-    RealRoot, 
-    0, 
-    0, 
-    DisplayWidth(dpy, scr), 
-    DisplayHeight(dpy, scr), 
-    0, 
-    DefaultDepth(dpy, scr), 
-    CopyFromParent,
-    DefaultVisual(dpy, scr),
-    CWOverrideRedirect | CWBackPixel,
-    &wa);
-  XMapWindow(dpy, root);
-  XFlush(dpy);
-  //*/
+    // Create a full screen window
+    Window RealRoot = RootWindow(dpy, scr);
+    root = XCreateWindow(dpy, 
+      RealRoot, 
+      0, 
+      0, 
+      DisplayWidth(dpy, scr), 
+      DisplayHeight(dpy, scr), 
+      0, 
+      DefaultDepth(dpy, scr), 
+      CopyFromParent,
+      DefaultVisual(dpy, scr),
+      CWOverrideRedirect | CWBackPixel,
+      &wa);
+    XMapWindow(dpy, root);
+    XFlush(dpy);
 
-    // 
-    // My additions
-    //
-    //
-    
+    // Read current user's theme
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
     string themebase = "";
@@ -120,14 +103,7 @@ int main(int argc, char **argv) {
     themeName = cfg->getOption("current_theme");
     string::size_type pos;
     if ((pos = themeName.find(",")) != string::npos) {
-        // input is a set
-
-        // I may choose to implement this later but for now I want simplicity
-        // themeName = findValidRandomTheme(themeName);
-
-        if (themeName == "") {
-            themeName = "default";
-        }
+        themeName = findValidRandomTheme(themeName);
     }
 
     bool loaded = false;
@@ -149,12 +125,12 @@ int main(int argc, char **argv) {
         }
     }
 
-    //blankScreen();
+    // This hides the cursor if the user has that option enabled in their
+    // configuration
     HideCursor();
 
     // Create panel
     loginPanel = new Panel(dpy, scr, root, cfg, themedir);
-    loginPanel->SetName(cfg->getOption("default_user"));
     bool panelClosed = true;
 
     // Main loop
@@ -166,38 +142,30 @@ int main(int argc, char **argv) {
             loginPanel->OpenPanel();
         }
         loginPanel->Reset();
-        loginPanel->SetName(cfg->getOption("default_user"));
+
+        char message[100];
+        char* name = getenv("USER");
+        strcpy(message, "User: ");
+        strcat(message, name);
+        loginPanel->SetName(name);
+        loginPanel->Message(message);
 
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser(true))
         {
-            printf("fail!\n");
             panelClosed = false;
             loginPanel->ClearPanel();
             XBell(dpy, 100);
             continue;
         }
-        // I think we can just exit here!
-        loginPanel->ClosePanel();
 
+        loginPanel->ClosePanel();
         delete loginPanel;
         XCloseDisplay(dpy);
-        exit(0);
         break;
     }
 
     return 0;
-}
-
-void blankScreen()
-{
-    GC gc = XCreateGC(dpy, root, 0, 0);
-    XSetForeground(dpy, gc, BlackPixel(dpy, scr));
-    XFillRectangle(dpy, root, gc, 0, 0,
-                   XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                   XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
-    XFlush(dpy);
-    XFreeGC(dpy, gc);
 }
 
 void setBackground(const string& themedir) {
@@ -253,38 +221,6 @@ void HideCursor()
     }
 }
 
-void KillAllClients(bool top)
-{
-    Window dummywindow;
-    Window *children;
-    unsigned int nchildren;
-    unsigned int i;
-    XWindowAttributes attr;
-
-    XSync(dpy, 0);
-    XSetErrorHandler(CatchErrors);
-
-    nchildren = 0;
-    XQueryTree(dpy, root, &dummywindow, &dummywindow, &children, &nchildren);
-    if(!top) {
-        for(i=0; i<nchildren; i++) {
-            if(XGetWindowAttributes(dpy, children[i], &attr) && (attr.map_state == IsViewable))
-                children[i] = XmuClientWindow(dpy, children[i]);
-            else
-                children[i] = 0;
-        }
-    }
-
-    for(i=0; i<nchildren; i++) {
-        if(children[i])
-            XKillClient(dpy, children[i]);
-    }
-    XFree((char *)children);
-
-    XSync(dpy, 0);
-    XSetErrorHandler(NULL);
-}
-
 bool AuthenticateUser(bool focuspass)
 {
     if (!focuspass){
@@ -322,17 +258,35 @@ bool AuthenticateUser(bool focuspass)
 
     encrypted = crypt(loginPanel->GetPasswd().c_str(), correct);
 
-    //printf("pw name: %s\n", pw->pw_name);
-    //printf("pw password: %s\n", pw->pw_passwd);
-    //printf("name: %s\n", loginPanel->GetName().c_str());
-    //printf("password: %s\n", loginPanel->GetPasswd().c_str());
-    //printf("encrypted password: %s\n", encrypted);
-    //printf("correct encrypted password: %s\n", correct);
-
     return ((strcmp(encrypted, correct) == 0) ? true : false);
 }
 
-int CatchErrors(Display *dpy, XErrorEvent *ev)
+string findValidRandomTheme(const string& set)
 {
-    return 0;
+    // extract random theme from theme set; return empty string on error
+    string name = set;
+    struct stat buf;
+
+    if (name[name.length()-1] == ',') {
+        name = name.substr(0, name.length() - 1);
+    }
+
+    Util::srandom(Util::makeseed());
+
+    vector<string> themes;
+    string themefile;
+    Cfg::split(themes, name, ',');
+    do {
+        int sel = Util::random() % themes.size();
+
+        name = Cfg::Trim(themes[sel]);
+        themefile = string(THEMESDIR) +"/" + name + THEMESFILE;
+        if (stat(themefile.c_str(), &buf) != 0) {
+            themes.erase(find(themes.begin(), themes.end(), name));
+            cerr << APPNAME << ": Invalid theme in config: "
+                 << name << endl;
+            name = "";
+        }
+    } while (name == "" && themes.size());
+    return name;
 }
