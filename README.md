@@ -7,10 +7,11 @@ have never been.
 Slimlock reads your SLiM config files and uses the same interface. If you use
 SLiM already, then it should work for you automatically.
 
-Requirements
-------------
-In order to build slimlock you need the Xlib header files.  Install with 'make'
-then 'make install'.
+Requirements and Building
+-------------------------
+Requires X11, libpng, libjpeg, freetype. Change CFGDIR in the makefile to the
+directory containing you slim.conf. As root, install with 'make' then 'make
+install'.
 
 Running slock
 -------------

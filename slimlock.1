@@ -1,0 +1,23 @@
+.TH slimlock 1 "January 12, 2011" "version 0.8"
+.SH NAME
+\fBslimlock\fP - Unholy Screen Locker
+\fB
+.SH SYNOPSIS
+.nf
+.fam C
+\fBslimlock\fP [-v]
+.fam T
+.fi
+.SH DESCRIPTION
+The Frankenstein's monster of screen lockers. Grafting SLiM and slock together
+leads to blood, tears, and locked screens.
+.SH OPTIONS
+.TP
+.B
+\fB-v\fP
+display version information
+.SH CONFIGURATION
+Slimlock reads the same configuration files you use for SLiM. It looks in
+CFGDIR/slim.conf where CFGDIR is defined in the makefile. The only options that
+are ever read are hidecursor, current_theme, background_color, and
+background_style. See the SLiM docs for more information.

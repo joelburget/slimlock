@@ -4,13 +4,14 @@
 CXX = g++
 CC  = gcc
 
-CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng12 -I/usr/include
+CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng14 -I/usr/include
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=-lXft -lX11 -lfreetype -lXrender -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt
+LDFLAGS=-lXft -lX11 -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt
 CUSTOM=-DHAVE_SHADOW
 NAME=slimlock
-VERSION=0.1
-CFGDIR=/etc# Change me!
+VERSION=0.8
+CFGDIR=/etc
+MANDIR=/usr/man
 DESTDIR=
 PREFIX=/usr
 DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
@@ -34,4 +35,5 @@ clean:
 	@rm -f slimlock *.o
 
 install: slimlock
+	@install -D -m 644 slimlock.1 $(DESTDIR)$(PREFIX)/man1/slimlock.1
 	@install -D -m 4755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock

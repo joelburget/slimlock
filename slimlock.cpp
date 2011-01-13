@@ -66,32 +66,6 @@ int main(int argc, char **argv) {
             "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
 
 
-    if(!(dpy = XOpenDisplay(DISPLAY)))
-        die("slimlock: cannot open display\n");
-    scr = DefaultScreen(dpy);
-    root = RootWindow(dpy, scr);
-
-    XSetWindowAttributes wa;
-    wa.override_redirect = 1;
-    wa.background_pixel = BlackPixel(dpy, scr);
-
-    // Create a full screen window
-    Window RealRoot = RootWindow(dpy, scr);
-    root = XCreateWindow(dpy, 
-      RealRoot, 
-      0, 
-      0, 
-      DisplayWidth(dpy, scr), 
-      DisplayHeight(dpy, scr), 
-      0, 
-      DefaultDepth(dpy, scr), 
-      CopyFromParent,
-      DefaultVisual(dpy, scr),
-      CWOverrideRedirect | CWBackPixel,
-      &wa);
-    XMapWindow(dpy, root);
-    XFlush(dpy);
-
     // Read current user's theme
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
@@ -124,6 +98,32 @@ int main(int argc, char **argv) {
             loaded = true;
         }
     }
+
+    if(!(dpy = XOpenDisplay(DISPLAY)))
+        die("slimlock: cannot open display\n");
+    scr = DefaultScreen(dpy);
+    root = RootWindow(dpy, scr);
+
+    XSetWindowAttributes wa;
+    wa.override_redirect = 1;
+    wa.background_pixel = BlackPixel(dpy, scr);
+
+    // Create a full screen window
+    Window RealRoot = RootWindow(dpy, scr);
+    root = XCreateWindow(dpy, 
+      RealRoot, 
+      0, 
+      0, 
+      DisplayWidth(dpy, scr), 
+      DisplayHeight(dpy, scr), 
+      0, 
+      DefaultDepth(dpy, scr), 
+      CopyFromParent,
+      DefaultVisual(dpy, scr),
+      CWOverrideRedirect | CWBackPixel,
+      &wa);
+    XMapWindow(dpy, root);
+    XFlush(dpy);
 
     // This hides the cursor if the user has that option enabled in their
     // configuration
