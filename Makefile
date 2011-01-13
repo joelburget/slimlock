@@ -35,5 +35,5 @@ clean:
 	@rm -f slimlock *.o
 
 install: slimlock
-	@install -D -m 644 slimlock.1 $(DESTDIR)$(PREFIX)/man1/slimlock.1
+	@install -D -m 644 slimlock.1 $(MANDIR)$(PREFIX)/man1/slimlock.1
 	@install -D -m 4755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
