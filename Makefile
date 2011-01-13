@@ -34,6 +34,13 @@ slimlock: $(OBJECTS)
 clean:
 	@rm -f slimlock *.o
 
+dist:
+	@rm -rf $(NAME)-$(VERSION)
+	@mkdir $(NAME)-$(VERSION)
+	@cp -r *.cpp *.h *.c Makefile LICENSE README.md slimlock.1 $(NAME)-$(VERSION)
+	@tar cvzf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)
+	@rm -rf $(NAME)-$(VERSION)
+
 install: slimlock
-	@install -D -m 644 slimlock.1 $(MANDIR)$(PREFIX)/man1/slimlock.1
+	@install -D -m 644 slimlock.1 $(DESTDIR)$(MANDIR)/man1/slimlock.1
 	@install -D -m 4755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
