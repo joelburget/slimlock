@@ -36,7 +36,6 @@
 #define ERROR_DURATION  5
 
 // variables replaced in login_cmd
-#define SESSION_VAR     "%session"
 #define THEME_VAR       "%theme"
 
 // variables replaced in pre-session_cmd and post-session_cmd

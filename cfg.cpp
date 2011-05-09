@@ -25,7 +25,6 @@ using namespace std;
 typedef pair<string,string> option;
 
 Cfg::Cfg() 
-    : currentSession(-1)
 {
     // Configuration options
     options.insert(option("default_path","/bin:/usr/bin:/usr/local/bin"));
@@ -34,16 +33,8 @@ Cfg::Cfg()
     options.insert(option("numlock",""));
     options.insert(option("daemon",""));
     options.insert(option("xauth_path","/usr/bin/xauth"));
-    options.insert(option("login_cmd","exec /bin/bash -login ~/.xinitrc %session"));
-    options.insert(option("halt_cmd","/sbin/shutdown -h now"));
-    options.insert(option("reboot_cmd","/sbin/shutdown -r now"));
-    options.insert(option("suspend_cmd",""));
-    options.insert(option("sessionstart_cmd",""));
-    options.insert(option("sessionstop_cmd",""));
-    options.insert(option("console_cmd","/usr/bin/xterm -C -fg white -bg black +sb -g %dx%d+%d+%d -fn %dx%d -T ""Console login"" -e /bin/sh -c ""/bin/cat /etc/issue; exec /bin/login"""));
     options.insert(option("screenshot_cmd","import -window root /slim.png"));
     options.insert(option("welcome_msg","Welcome to %host"));
-    options.insert(option("session_msg","Session:"));
     options.insert(option("default_user",""));
     options.insert(option("focus_password","no"));
     options.insert(option("auto_login","no"));
@@ -53,8 +44,6 @@ Cfg::Cfg()
     options.insert(option("authfile","/var/run/slim.auth"));
     options.insert(option("shutdown_msg","The system is halting..."));
     options.insert(option("reboot_msg","The system is rebooting..."));
-    options.insert(option("sessions","wmaker,blackbox,icewm"));
-    options.insert(option("sessiondir",""));
     options.insert(option("hidecursor","false"));
 
     // Theme stuff
@@ -110,15 +99,6 @@ Cfg::Cfg()
     options.insert(option("msg_shadow_xoffset", "0"));
     options.insert(option("msg_shadow_yoffset", "0"));
     options.insert(option("msg_shadow_color","#FFFFFF"));
-    
-
-    options.insert(option("session_color","#FFFFFF"));
-    options.insert(option("session_font","Verdana:size=16:bold"));
-    options.insert(option("session_x","50%"));
-    options.insert(option("session_y","90%"));
-    options.insert(option("session_shadow_xoffset", "0"));
-    options.insert(option("session_shadow_yoffset", "0"));
-    options.insert(option("session_shadow_color","#FFFFFF"));
 
     error = "";
 
@@ -149,8 +129,6 @@ bool Cfg::readConf(string configfile) {
             }
         }
         cfgfile.close();
-
-        fillSessionList();
 
         return true;
     } else {
@@ -261,47 +239,4 @@ void Cfg::split(vector<string>& v, const string& str, char c, bool useEmpty) {
             break;
         }
     }
-}
-
-void Cfg::fillSessionList(){
-    string strSessionList = getOption("sessions");
-    string strSessionDir  = getOption("sessiondir");
-
-    sessions.clear();
-
-    if( !strSessionDir.empty() ) {
-        DIR *pDir = opendir(strSessionDir.c_str());
-
-        if (pDir != NULL) {
-            struct dirent *pDirent = NULL;
-
-            while ((pDirent = readdir(pDir)) != NULL) {
-                string strFile(strSessionDir);
-                strFile += "/";
-                strFile += pDirent->d_name;
-
-                struct stat oFileStat;
-
-                if (stat(strFile.c_str( ), &oFileStat) == 0){
-                    if (S_ISREG(oFileStat.st_mode) && 
-                        access(strFile.c_str(), R_OK | X_OK) == 0){
-                        sessions.push_back(string(pDirent->d_name));
-                    }
-                }
-            }
-            closedir(pDir);
-        }
-    } 
-
-    if (sessions.empty()){
-        split(sessions, strSessionList, ',', false);
-    }
-}
-
-string Cfg::nextSession(string current) {
-    if (sessions.size() < 1)
-        return current;
-
-    currentSession = (currentSession + 1) % sessions.size();
-    return sessions[currentSession];
 }

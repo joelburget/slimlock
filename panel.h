@@ -57,7 +57,6 @@ public:
     void Message(const std::string& text);
     void Error(const std::string& text);
     void EventHandler(const FieldType& curfield);
-    std::string getSession();
     ActionType getAction(void) const;
 
     void Reset(void);
@@ -73,8 +72,6 @@ private:
     void OnExpose(void);
     bool OnKeyPress(XEvent& event);
     void ShowText();
-    void SwitchSession();
-    void ShowSession();
 
     void SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
                             int x, int y, const std::string& str,
@@ -100,9 +97,6 @@ private:
     XftFont* introfont;
     XftFont* welcomefont;
     XftColor welcomecolor;
-    XftFont* sessionfont;
-    XftColor sessioncolor;
-    XftColor sessionshadowcolor;
     XftColor welcomeshadowcolor;
     XftFont* enterfont;
     XftColor entercolor;
@@ -127,8 +121,6 @@ private:
     int welcome_y;
     int welcome_shadow_xoffset;
     int welcome_shadow_yoffset;
-    int session_shadow_xoffset;
-    int session_shadow_yoffset;
     int intro_x;
     int intro_y;
     int username_x;
@@ -148,9 +140,6 @@ private:
     // For thesting themes
     bool testing;
     std::string themedir;
-
-    // Session handling
-    std::string session;
 
 };
 
