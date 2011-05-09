@@ -17,7 +17,7 @@ NAME=slimlock
 VERSION=0.1
 CFGDIR=/etc
 
-OBJECTS=cfg.o image.o panel.o switchuser.o slimlock.o util.o jpeg.o png.o
+OBJECTS=cfg.o image.o panel.o slimlock.o util.o jpeg.o png.o
 
 DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
 		-DPKGDATADIR=\"$(PREFIX)/share/slim\" -DSYSCONFDIR=\"$(CFGDIR)\"

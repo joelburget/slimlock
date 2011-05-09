@@ -22,12 +22,15 @@
 #include <signal.h>
 #include <iostream>
 #include <string>
+#include <pwd.h>
+#include <grp.h>
 
 #ifdef NEEDS_BASENAME
 #include <libgen.h>
 #endif
 
-#include "switchuser.h"
+
+#include "cfg.h"
 #include "const.h"
 #include "image.h"
 
