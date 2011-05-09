@@ -27,11 +27,6 @@ typedef pair<string,string> option;
 Cfg::Cfg() 
 {
     // Configuration options
-    options.insert(option("default_path","/bin:/usr/bin:/usr/local/bin"));
-    options.insert(option("default_xserver","/usr/bin/X"));
-    options.insert(option("xserver_arguments",""));
-    options.insert(option("numlock",""));
-    options.insert(option("daemon",""));
     options.insert(option("xauth_path","/usr/bin/xauth"));
     options.insert(option("screenshot_cmd","import -window root /slim.png"));
     options.insert(option("welcome_msg","Welcome to %host"));

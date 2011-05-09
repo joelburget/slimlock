@@ -181,19 +181,23 @@ void setBackground(const string& themedir) {
     if (loaded) {
         string bgstyle = cfg->getOption("background_style");
         if (bgstyle == "stretch") {
-            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
         } else if (bgstyle == "tile") {
-            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                        XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
         } else if (bgstyle == "center") {
             string hexvalue = cfg->getOption("background_color");
             hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                        hexvalue.c_str());
+            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          hexvalue.c_str());
         } else { // plain color or error
             string hexvalue = cfg->getOption("background_color");
             hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                        hexvalue.c_str());
+            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          hexvalue.c_str());
         }
         Pixmap p = image->createPixmap(dpy, scr, root);
         XSetWindowBackgroundPixmap(dpy, root, p);
