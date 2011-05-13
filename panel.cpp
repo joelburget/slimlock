@@ -352,24 +352,6 @@ bool Panel::OnKeyPress(XEvent& event) {
 
         case XK_Return:
         case XK_KP_Enter:
-            if (field==Get_Name){
-                // Don't allow an empty username
-                if (NameBuffer.empty()) return true;
-
-                if (NameBuffer==CONSOLE_STR){
-                    action = Console;
-                } else if (NameBuffer==HALT_STR){
-                    action = Halt;
-                } else if (NameBuffer==REBOOT_STR){
-                    action = Reboot;
-                } else if (NameBuffer==SUSPEND_STR){
-                    action = Suspend;
-                } else if (NameBuffer==EXIT_STR){
-                    action = Exit;
-                } else{
-                    action = Login;
-                }
-            };
             return false;
         default:
             break;
@@ -558,12 +540,6 @@ void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
     }
     XftDrawString8(d, color, font, x, y, reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
 }
-
-
-Panel::ActionType Panel::getAction(void) const{
-    return action;
-};
-
 
 void Panel::Reset(void){
     ResetName();

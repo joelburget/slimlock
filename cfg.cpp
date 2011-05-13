@@ -30,15 +30,10 @@ Cfg::Cfg()
     options.insert(option("xauth_path","/usr/bin/xauth"));
     options.insert(option("screenshot_cmd","import -window root /slim.png"));
     options.insert(option("welcome_msg","Welcome to %host"));
-    options.insert(option("default_user",""));
-    options.insert(option("focus_password","no"));
-    options.insert(option("auto_login","no"));
     options.insert(option("current_theme","default"));
     //options.insert(option("lockfile","/var/run/slim.lock"));
-    options.insert(option("logfile","/var/log/slim.log"));
+    //options.insert(option("logfile","/var/log/slim.log"));
     options.insert(option("authfile","/var/run/slim.auth"));
-    options.insert(option("shutdown_msg","The system is halting..."));
-    options.insert(option("reboot_msg","The system is rebooting..."));
     options.insert(option("hidecursor","false"));
 
     // Theme stuff

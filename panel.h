@@ -37,14 +37,6 @@
 
 class Panel {
 public:
-    enum ActionType {
-        Login,
-        Console,
-        Reboot,
-        Halt,
-        Exit,
-        Suspend
-    };
     enum FieldType {
         Get_Name,
         Get_Passwd
@@ -60,7 +52,6 @@ public:
     void Message(const std::string& text);
     void Error(const std::string& text);
     void EventHandler(const FieldType& curfield);
-    ActionType getAction(void) const;
 
     void Reset(void);
     void ResetName(void);
@@ -104,7 +95,6 @@ private:
     XftFont* enterfont;
     XftColor entercolor;
     XftColor entershadowcolor;
-    ActionType action;
     FieldType field;
     
     // Username/Password

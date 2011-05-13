@@ -28,7 +28,7 @@ using namespace std;
 
 void setBackground(const string& themedir);
 void HideCursor();
-bool AuthenticateUser(bool focuspass);
+bool AuthenticateUser();
 string findValidRandomTheme(const string& set);
 
 // I really didn't wanna put these globals here, but it's the only way...
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
         loginPanel->Message(message);
 
         // AuthenticateUser returns true if authenticated
-        if (!AuthenticateUser(true))
+        if (!AuthenticateUser())
         {
             panelClosed = false;
             loginPanel->ClearPanel();
@@ -225,19 +225,8 @@ void HideCursor()
     }
 }
 
-bool AuthenticateUser(bool focuspass)
+bool AuthenticateUser()
 {
-    if (!focuspass){
-        loginPanel->EventHandler(Panel::Get_Name);
-        switch(loginPanel->getAction()){
-            case Panel::Exit:
-            case Panel::Console:
-                cerr << APPNAME << ": Got a special command (" << loginPanel->GetName() << ")" << endl;
-                return true; // <--- This is simply fake!
-            default:
-                break;
-        }
-    }
     loginPanel->EventHandler(Panel::Get_Passwd);
     
     char *encrypted, *correct;
