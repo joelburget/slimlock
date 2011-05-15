@@ -167,7 +167,7 @@ void Panel::OpenPanel() {
     XMoveWindow(Dpy, Win, X, Y); // override wm positioning (for tests)
 
     // Grab keyboard
-    XGrabKeyboard(Dpy, Win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
+    //XGrabKeyboard(Dpy, Win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
 
     XFlush(Dpy);
 

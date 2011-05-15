@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
       &wa);
     XMapWindow(dpy, root);
     XFlush(dpy);
+    XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
     // This hides the cursor if the user has that option enabled in their
     // configuration
