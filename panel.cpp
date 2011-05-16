@@ -377,7 +377,22 @@ bool Panel::OnKeyPress(XEvent& event) {
                     break;
             };
             break;
-
+        case XK_Escape:
+            switch(field) {
+                case GET_NAME:
+                    if (! NameBuffer.empty()){
+                        formerString = NameBuffer;
+                        NameBuffer = "";
+                    };
+                    break;
+                case GET_PASSWD:
+                    if (! PasswdBuffer.empty()){
+                        formerString = HiddenPasswdBuffer;
+                        PasswdBuffer = "";
+                        HiddenPasswdBuffer = "";
+                    };
+                    break;
+            };
         case XK_w:
         case XK_u:
             if (reinterpret_cast<XKeyEvent&>(event).state & ControlMask) {
