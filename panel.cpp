@@ -244,13 +244,13 @@ void Panel::Cursor(int visible) {
     const char* txth = "Wj"; // used to get cursor height
 
     switch(field) {
-        case Get_Passwd:
+        case GET_PASSWD:
             text = HiddenPasswdBuffer.c_str();
             xx = input_pass_x;
             yy = input_pass_y;
             break;
 
-        case Get_Name:
+        case GET_NAME:
             text = NameBuffer.c_str();
             xx = input_name_x;
             yy = input_name_y;
@@ -312,14 +312,14 @@ void Panel::OnExpose(void) {
                          inputShadowXOffset, inputShadowYOffset);
     } else { //single input mode
         switch(field) {
-            case Get_Passwd:
+            case GET_PASSWD:
                 SlimDrawString8 (draw, &inputcolor, font,
                                  input_pass_x, input_pass_y,
                                  HiddenPasswdBuffer,
                                  &inputshadowcolor,
                                  inputShadowXOffset, inputShadowYOffset);
                 break;
-            case Get_Name:
+            case GET_NAME:
                 SlimDrawString8 (draw, &inputcolor, font,
                                  input_name_x, input_name_y,
                                  NameBuffer,
@@ -382,14 +382,14 @@ bool Panel::OnKeyPress(XEvent& event) {
                 case GET_NAME:
                     if (! NameBuffer.empty()){
                         formerString = NameBuffer;
-                        NameBuffer = "";
+                        NameBuffer.clear();
                     };
                     break;
                 case GET_PASSWD:
                     if (! PasswdBuffer.empty()){
                         formerString = HiddenPasswdBuffer;
-                        PasswdBuffer = "";
-                        HiddenPasswdBuffer = "";
+                        PasswdBuffer.clear();
+                        HiddenPasswdBuffer.clear();
                     };
                     break;
             };
@@ -397,13 +397,13 @@ bool Panel::OnKeyPress(XEvent& event) {
         case XK_u:
             if (reinterpret_cast<XKeyEvent&>(event).state & ControlMask) {
                 switch(field) {
-                    case Get_Passwd:
+                    case GET_PASSWD:
                         formerString = HiddenPasswdBuffer;
                         HiddenPasswdBuffer.clear();
                         PasswdBuffer.clear();
                         break;
 
-                    case Get_Name:
+                    case GET_NAME:
                         formerString = NameBuffer;
                         NameBuffer.clear();
                         break;
@@ -438,13 +438,13 @@ bool Panel::OnKeyPress(XEvent& event) {
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
 
    switch(field) {
-        case Get_Name:
+        case GET_NAME:
             text = NameBuffer;
             xx = input_name_x;
             yy = input_name_y;
             break;
 
-        case Get_Passwd:
+        case GET_PASSWD:
             text = HiddenPasswdBuffer;
             xx = input_pass_x;
             yy = input_pass_y;
@@ -507,7 +507,7 @@ void Panel::ShowText(){
 
     /* Enter username-password message */
     string msg;
-    if (!singleInputMode|| field == Get_Passwd ) {
+    if (!singleInputMode|| field == GET_PASSWD ) {
         msg = cfg->getOption("password_msg");
         XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
                         strlen(msg.c_str()), &extents);
@@ -524,7 +524,7 @@ void Panel::ShowText(){
                              msg, &entershadowcolor, shadowXOffset, shadowYOffset);
         }
     }
-    if (!singleInputMode|| field == Get_Name ) {
+    if (!singleInputMode|| field == GET_NAME ) {
         msg = cfg->getOption("username_msg");
         XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
                         strlen(msg.c_str()), &extents);

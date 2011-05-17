@@ -228,7 +228,7 @@ void HideCursor()
 
 bool AuthenticateUser()
 {
-    loginPanel->EventHandler(Panel::Get_Passwd);
+    loginPanel->EventHandler(Panel::GET_PASSWD);
     
     char *encrypted, *correct;
     struct passwd *pw;
