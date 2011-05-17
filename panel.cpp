@@ -342,6 +342,7 @@ bool Panel::OnKeyPress(XEvent& event) {
     int yy;
     string text;
     string formerString = "";
+    bool fieldTextChanged = true;
     
     XLookupString(&event.xkey, &ascii, 1, &keysym, &compstatus);
     switch(keysym){
@@ -390,6 +391,8 @@ bool Panel::OnKeyPress(XEvent& event) {
                     PasswdBuffer.append(&ascii,1);
                     HiddenPasswdBuffer.append("*");
                 };
+            } else {
+                fieldTextChanged = false;
             };
             break;
     };
@@ -415,7 +418,7 @@ bool Panel::OnKeyPress(XEvent& event) {
                    maxLength+6, maxHeight+6, false);
     }
 
-    if (!text.empty()) {
+    if (fieldTextChanged) {
         SlimDrawString8 (draw, &inputcolor, font, xx, yy,
                          text,
                          &inputshadowcolor,
