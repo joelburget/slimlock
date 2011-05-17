@@ -361,73 +361,34 @@ bool Panel::OnKeyPress(XEvent& event) {
     switch(keysym){
         case XK_Delete:
         case XK_BackSpace:
-            switch(field) {
-                case GET_NAME:
-                    if (! NameBuffer.empty()){
-                        formerString=NameBuffer;
-                        NameBuffer.erase(--NameBuffer.end());
-                    };
-                    break;
-                case GET_PASSWD:
-                    if (! PasswdBuffer.empty()){
-                        formerString=HiddenPasswdBuffer;
-                        PasswdBuffer.erase(--PasswdBuffer.end());
-                        HiddenPasswdBuffer.erase(--HiddenPasswdBuffer.end());
-                    };
-                    break;
+            if (! PasswdBuffer.empty()){
+                formerString=HiddenPasswdBuffer;
+                PasswdBuffer.erase(--PasswdBuffer.end());
+                HiddenPasswdBuffer.erase(--HiddenPasswdBuffer.end());
             };
             break;
         case XK_Escape:
-            switch(field) {
-                case GET_NAME:
-                    if (! NameBuffer.empty()){
-                        formerString = NameBuffer;
-                        NameBuffer.clear();
-                    };
-                    break;
-                case GET_PASSWD:
-                    if (! PasswdBuffer.empty()){
-                        formerString = HiddenPasswdBuffer;
-                        PasswdBuffer.clear();
-                        HiddenPasswdBuffer.clear();
-                    };
-                    break;
+            if (! PasswdBuffer.empty()){
+                formerString = HiddenPasswdBuffer;
+                PasswdBuffer.clear();
+                HiddenPasswdBuffer.clear();
             };
+            break;
         case XK_w:
         case XK_u:
             if (reinterpret_cast<XKeyEvent&>(event).state & ControlMask) {
-                switch(field) {
-                    case GET_PASSWD:
-                        formerString = HiddenPasswdBuffer;
-                        HiddenPasswdBuffer.clear();
-                        PasswdBuffer.clear();
-                        break;
-
-                    case GET_NAME:
-                        formerString = NameBuffer;
-                        NameBuffer.clear();
-                        break;
-                };
-                break;
-            }
+                formerString = HiddenPasswdBuffer;
+                HiddenPasswdBuffer.clear();
+                PasswdBuffer.clear();
+            };
             // Deliberate fall-through
         
         default:
             if (isprint(ascii) && (keysym < XK_Shift_L || keysym > XK_Hyper_R)){
-                switch(field) {
-                    case GET_NAME:
-                        formerString=NameBuffer;
-                        if (NameBuffer.length() < INPUT_MAXLENGTH_NAME-1){
-                            NameBuffer.append(&ascii,1);
-                        };
-                        break;
-                    case GET_PASSWD:
-                        formerString=HiddenPasswdBuffer;
-                        if (PasswdBuffer.length() < INPUT_MAXLENGTH_PASSWD-1){
-                            PasswdBuffer.append(&ascii,1);
-                            HiddenPasswdBuffer.append("*");
-                        };
-                    break;
+                formerString=HiddenPasswdBuffer;
+                if (PasswdBuffer.length() < INPUT_MAXLENGTH_PASSWD-1){
+                    PasswdBuffer.append(&ascii,1);
+                    HiddenPasswdBuffer.append("*");
                 };
             };
             break;
@@ -437,20 +398,10 @@ bool Panel::OnKeyPress(XEvent& event) {
     XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
 
-   switch(field) {
-        case GET_NAME:
-            text = NameBuffer;
-            xx = input_name_x;
-            yy = input_name_y;
-            break;
-
-        case GET_PASSWD:
-            text = HiddenPasswdBuffer;
-            xx = input_pass_x;
-            yy = input_pass_y;
-            break;
-    }
-
+    text = HiddenPasswdBuffer;
+    xx = input_pass_x;
+    yy = input_pass_y;
+    
     if (!formerString.empty()){
         const char* txth = "Wj"; // get proper maximum height ?
         XftTextExtents8(Dpy, font, reinterpret_cast<const XftChar8*>(txth), strlen(txth), &extents);
