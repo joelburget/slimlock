@@ -28,7 +28,7 @@ using namespace std;
 
 void setBackground(const string& themedir);
 void HideCursor();
-bool AuthenticateUser(bool focuspass);
+bool AuthenticateUser();
 string findValidRandomTheme(const string& set);
 
 // I really didn't wanna put these globals here, but it's the only way...
@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
       &wa);
     XMapWindow(dpy, root);
     XFlush(dpy);
+    XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
     // This hides the cursor if the user has that option enabled in their
     // configuration
@@ -151,7 +152,7 @@ int main(int argc, char **argv) {
         loginPanel->Message(message);
 
         // AuthenticateUser returns true if authenticated
-        if (!AuthenticateUser(true))
+        if (!AuthenticateUser())
         {
             panelClosed = false;
             loginPanel->ClearPanel();
@@ -181,19 +182,23 @@ void setBackground(const string& themedir) {
     if (loaded) {
         string bgstyle = cfg->getOption("background_style");
         if (bgstyle == "stretch") {
-            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
         } else if (bgstyle == "tile") {
-            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                        XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
         } else if (bgstyle == "center") {
             string hexvalue = cfg->getOption("background_color");
             hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                        hexvalue.c_str());
+            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          hexvalue.c_str());
         } else { // plain color or error
             string hexvalue = cfg->getOption("background_color");
             hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)), XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                        hexvalue.c_str());
+            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          hexvalue.c_str());
         }
         Pixmap p = image->createPixmap(dpy, scr, root);
         XSetWindowBackgroundPixmap(dpy, root, p);
@@ -221,19 +226,8 @@ void HideCursor()
     }
 }
 
-bool AuthenticateUser(bool focuspass)
+bool AuthenticateUser()
 {
-    if (!focuspass){
-        loginPanel->EventHandler(Panel::Get_Name);
-        switch(loginPanel->getAction()){
-            case Panel::Exit:
-            case Panel::Console:
-                cerr << APPNAME << ": Got a special command (" << loginPanel->GetName() << ")" << endl;
-                return true; // <--- This is simply fake!
-            default:
-                break;
-        }
-    }
     loginPanel->EventHandler(Panel::Get_Passwd);
     
     char *encrypted, *correct;

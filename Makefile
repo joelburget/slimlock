@@ -17,7 +17,7 @@ PREFIX=/usr
 DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
 		-DPKGDATADIR=\"$(PREFIX)/share/slim\" -DSYSCONFDIR=\"$(CFGDIR)\"
 
-OBJECTS=cfg.o image.o panel.o switchuser.o slimlock.o util.o jpeg.o png.o
+OBJECTS=cfg.o image.o panel.o slimlock.o util.o jpeg.o png.o
 
 all: slimlock
 	@chmod 4755 slimlock

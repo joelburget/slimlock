@@ -24,8 +24,6 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     Root = root;
 		cfg = config;
 
-    session = "";
-
     // Init GC
     XGCValues gcv;
     unsigned long gcm;
@@ -53,10 +51,6 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     XftColorAllocName(Dpy, visual, colormap, cfg->getOption("msg_color").c_str(), &msgcolor);
     XftColorAllocName(Dpy, visual, colormap, cfg->getOption("msg_shadow_color").c_str(), &msgshadowcolor);
     XftColorAllocName(Dpy, visual, colormap, cfg->getOption("intro_color").c_str(), &introcolor);
-    XftColorAllocName(Dpy, DefaultVisual(Dpy, Scr), colormap,
-                      cfg->getOption("session_color").c_str(), &sessioncolor);
-    XftColorAllocName(Dpy, DefaultVisual(Dpy, Scr), colormap,
-                      cfg->getOption("session_shadow_color").c_str(), &sessionshadowcolor);
 
     // Load properties from config / theme
     input_name_x = Cfg::string2int(cfg->getOption("input_name_x").c_str());
@@ -145,8 +139,6 @@ Panel::~Panel() {
     XftColorFree (Dpy, DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr), &msgcolor);
     XftColorFree (Dpy, DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr), &welcomecolor);
     XftColorFree (Dpy, DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr), &entercolor);
-    XftColorFree (Dpy, DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr), &sessioncolor);
-    XftColorFree (Dpy, DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr), &sessionshadowcolor);
     XFreeGC(Dpy, TextGC);
     XftFontClose(Dpy, font);
     XftFontClose(Dpy, msgfont);
@@ -189,7 +181,6 @@ void Panel::ClosePanel() {
 }
 
 void Panel::ClearPanel() {
-    session = "";
     Reset();
     XClearWindow(Dpy, Root);
     XClearWindow(Dpy, Win);
@@ -354,10 +345,6 @@ bool Panel::OnKeyPress(XEvent& event) {
     
     XLookupString(&event.xkey, &ascii, 1, &keysym, &compstatus);
     switch(keysym){
-        case XK_F1:
-            SwitchSession();
-            return true;
-
         case XK_F11:
             // Take a screenshot
             system(cfg->getOption("screenshot_cmd").c_str());
@@ -365,24 +352,6 @@ bool Panel::OnKeyPress(XEvent& event) {
 
         case XK_Return:
         case XK_KP_Enter:
-            if (field==Get_Name){
-                // Don't allow an empty username
-                if (NameBuffer.empty()) return true;
-
-                if (NameBuffer==CONSOLE_STR){
-                    action = Console;
-                } else if (NameBuffer==HALT_STR){
-                    action = Halt;
-                } else if (NameBuffer==REBOOT_STR){
-                    action = Reboot;
-                } else if (NameBuffer==SUSPEND_STR){
-                    action = Suspend;
-                } else if (NameBuffer==EXIT_STR){
-                    action = Exit;
-                } else{
-                    action = Login;
-                }
-            };
             return false;
         default:
             break;
@@ -408,7 +377,22 @@ bool Panel::OnKeyPress(XEvent& event) {
                     break;
             };
             break;
-
+        case XK_Escape:
+            switch(field) {
+                case GET_NAME:
+                    if (! NameBuffer.empty()){
+                        formerString = NameBuffer;
+                        NameBuffer = "";
+                    };
+                    break;
+                case GET_PASSWD:
+                    if (! PasswdBuffer.empty()){
+                        formerString = HiddenPasswdBuffer;
+                        PasswdBuffer = "";
+                        HiddenPasswdBuffer = "";
+                    };
+                    break;
+            };
         case XK_w:
         case XK_u:
             if (reinterpret_cast<XKeyEvent&>(event).state & ControlMask) {
@@ -560,49 +544,6 @@ void Panel::ShowText(){
     XftDrawDestroy(draw);
 }
 
-string Panel::getSession() {
-    return session;
-}
-
-// choose next available session type
-void Panel::SwitchSession() {
-    session = cfg->nextSession(session);
-    if (session.size() > 0) {
-        ShowSession();
-    }
-}
-
-// Display session type on the screen
-void Panel::ShowSession() {
-	string msg_x, msg_y;
-    XClearWindow(Dpy, Root);
-    string currsession = cfg->getOption("session_msg") + " " + session;
-    XGlyphInfo extents;
-	
-	sessionfont = XftFontOpenName(Dpy, Scr, cfg->getOption("session_font").c_str());
-    
-	XftDraw *draw = XftDrawCreate(Dpy, Root,
-                                  DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
-    XftTextExtents8(Dpy, sessionfont, reinterpret_cast<const XftChar8*>(currsession.c_str()),
-                    currsession.length(), &extents);
-    msg_x = cfg->getOption("session_x");
-    msg_y = cfg->getOption("session_y");
-    int x = Cfg::absolutepos(msg_x, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
-    int y = Cfg::absolutepos(msg_y, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
-    int shadowXOffset =
-        Cfg::string2int(cfg->getOption("session_shadow_xoffset").c_str());
-    int shadowYOffset =
-        Cfg::string2int(cfg->getOption("session_shadow_yoffset").c_str());
-
-    SlimDrawString8(draw, &sessioncolor, sessionfont, x, y,
-                    currsession, 
-                    &sessionshadowcolor,
-                    shadowXOffset, shadowYOffset);
-    XFlush(Dpy);
-    XftDrawDestroy(draw);
-}
-
-
 void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
                             int x, int y, const string& str,
                             XftColor* shadowColor,
@@ -614,12 +555,6 @@ void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
     }
     XftDrawString8(d, color, font, x, y, reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
 }
-
-
-Panel::ActionType Panel::getAction(void) const{
-    return action;
-};
-
 
 void Panel::Reset(void){
     ResetName();

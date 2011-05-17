@@ -39,15 +39,8 @@ public:
                       char c, bool useEmpty=true);
     static std::string Trim(const std::string& s);
 
-    std::string nextSession(std::string current);
-
-private:
-    void fillSessionList();
-
 private:
     std::map<std::string,std::string> options;
-    std::vector<std::string> sessions;
-    int currentSession;
     std::string error;
 
 };
