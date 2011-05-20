@@ -17,17 +17,8 @@
 
 #define DISPLAY    ":0.0"
 
-#define CONSOLE_STR     "console"
-#define HALT_STR        "halt"
-#define REBOOT_STR      "reboot"
-#define EXIT_STR        "exit"
-#define SUSPEND_STR     "suspend"
-
 #define HIDE        0
 #define SHOW        1
-
-#define GET_NAME    0
-#define GET_PASSWD  1
 
 #define OK_EXIT     0
 #define ERR_EXIT    1

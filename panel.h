@@ -38,8 +38,8 @@
 class Panel {
 public:
     enum FieldType {
-        Get_Name,
-        Get_Passwd
+        GET_NAME,
+        GET_PASSWD
     };
 
 
