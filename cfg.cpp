@@ -27,13 +27,9 @@ typedef pair<string,string> option;
 Cfg::Cfg() 
 {
     // Configuration options
-    options.insert(option("xauth_path","/usr/bin/xauth"));
     options.insert(option("screenshot_cmd","import -window root /slim.png"));
     options.insert(option("welcome_msg","Welcome to %host"));
     options.insert(option("current_theme","default"));
-    //options.insert(option("lockfile","/var/run/slim.lock"));
-    //options.insert(option("logfile","/var/log/slim.log"));
-    options.insert(option("authfile","/var/run/slim.auth"));
     options.insert(option("hidecursor","false"));
 
     // Theme stuff

@@ -17,27 +17,6 @@
 #include "util.h"
 
 /*
- * Adds the given cookie to the specified Xauthority file.
- * Returns true on success, false on fault.
- */
-bool Util::add_mcookie(const std::string &mcookie, const char *display,
-    const std::string &xauth_cmd, const std::string &authfile)
-{
-	FILE *fp;
-	std::string cmd = xauth_cmd + " -f " + authfile + " -q";
-
-	fp = popen(cmd.c_str(), "w");
-	if (!fp)
-		return false;
-	fprintf(fp, "remove %s\n", display);
-	fprintf(fp, "add %s %s %s\n", display, ".", mcookie.c_str());
-	fprintf(fp, "exit\n");
-
-	pclose(fp);
-	return true;
-}
-
-/*
  * Interface for random number generator.  Just now it uses ordinary
  * random/srandom routines and serves as a wrapper for them.
  */
