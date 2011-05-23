@@ -22,7 +22,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     Dpy = dpy;
     Scr = scr;
     Root = root;
-		cfg = config;
+    cfg = config;
 
     // Init GC
     XGCValues gcv;

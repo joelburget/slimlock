@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
 
 
     // Read current user's theme
+    CARD16 dpms_standby, dpms_suspend, dpms_off;
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
     string themebase = "";
@@ -134,6 +135,13 @@ int main(int argc, char **argv) {
     loginPanel = new Panel(dpy, scr, root, cfg, themedir);
     bool panelClosed = true;
 
+    // Set up DPMS
+    if (DPMSCapable(dpy)) {
+        DPMSGetTimeouts(dpy, &dpms_standby, &dpms_suspend, &dpms_off);
+        DPMSSetTimeouts(dpy, DPMS_SUSPEND_TIMEOUT, dpms_suspend, dpms_off);
+    }
+    DPMSEnable(dpy);
+    
     // Main loop
     while (true)
     {
@@ -157,11 +165,15 @@ int main(int argc, char **argv) {
             panelClosed = false;
             loginPanel->ClearPanel();
             XBell(dpy, 100);
+            sleep(2);
             continue;
         }
 
         loginPanel->ClosePanel();
         delete loginPanel;
+        // Get DPMS stuff back to normal
+        if (DPMSCapable(dpy))
+            DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
         XCloseDisplay(dpy);
         break;
     }
