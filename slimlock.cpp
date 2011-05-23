@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
     CARD16 dpms_standby, dpms_suspend, dpms_off;
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
+    cfg->readConf(SLIMLOCKCFG);
     string themebase = "";
     string themefile = "";
     string themedir = "";
@@ -138,7 +139,8 @@ int main(int argc, char **argv) {
     // Set up DPMS
     if (DPMSCapable(dpy)) {
         DPMSGetTimeouts(dpy, &dpms_standby, &dpms_suspend, &dpms_off);
-        DPMSSetTimeouts(dpy, DPMS_SUSPEND_TIMEOUT, dpms_suspend, dpms_off);
+        DPMSSetTimeouts(dpy, Cfg::string2int(cfg->getOption("dpms_timeout").c_str()),
+                        dpms_suspend, dpms_off);
     }
     DPMSEnable(dpy);
     

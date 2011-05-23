@@ -86,6 +86,8 @@ Cfg::Cfg()
     options.insert(option("msg_shadow_yoffset", "0"));
     options.insert(option("msg_shadow_color","#FFFFFF"));
 
+    options.insert(option("dpms_timeout", "60"));
+
     error = "";
 
 }
