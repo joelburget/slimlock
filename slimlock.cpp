@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
         die("slimlock-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
         die("usage: slimlock [-v]\n");
+        
+    // create a lock file to solve mutliple instances problem
     int pid_file = open("/var/run/slimlock.pid", O_CREAT | O_RDWR, 0666);
     int rc = flock(pid_file, LOCK_EX | LOCK_NB);
     if(rc) {
@@ -72,8 +74,10 @@ int main(int argc, char **argv) {
             "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
 
 
+    CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
+    BOOL dpms_state, using_dpms;
+    unsigned int cfg_dpms_timeout;
     // Read current user's theme
-    CARD16 dpms_standby, dpms_suspend, dpms_off;
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
     cfg->readConf(SLIMLOCKCFG);
@@ -143,13 +147,17 @@ int main(int argc, char **argv) {
     bool panelClosed = true;
 
     // Set up DPMS
-    if (DPMSCapable(dpy)) {
+    cfg_dpms_timeout = Cfg::string2int(cfg->getOption("dpms_timeout").c_str());
+    using_dpms = DPMSCapable(dpy) && (cfg_dpms_timeout > 0);
+    if (using_dpms) {
         DPMSGetTimeouts(dpy, &dpms_standby, &dpms_suspend, &dpms_off);
-        DPMSSetTimeouts(dpy, Cfg::string2int(cfg->getOption("dpms_timeout").c_str()),
+        DPMSSetTimeouts(dpy, cfg_dpms_timeout,
                         dpms_suspend, dpms_off);
-    }
-    DPMSEnable(dpy);
     
+        DPMSInfo(dpy, &dpms_level, &dpms_state);
+        if (!dpms_state)
+            DPMSEnable(dpy);
+    }
     // Main loop
     while (true)
     {
@@ -180,8 +188,12 @@ int main(int argc, char **argv) {
         loginPanel->ClosePanel();
         delete loginPanel;
         // Get DPMS stuff back to normal
-        if (DPMSCapable(dpy))
+        if (using_dpms) {
             DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
+            // turn off DPMS if it was off when we entered
+            if (!dpms_state)
+                DPMSDisable(dpy);
+        }
         XCloseDisplay(dpy);
         break;
     }
