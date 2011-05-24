@@ -84,55 +84,6 @@ Image::Read(const char *filename) {
 }
 
 void
-Image::Reduce(const int factor) {
-    if (factor < 1)
-        return;
-
-    int scale = 1;
-    for (int i = 0; i < factor; i++)
-        scale *= 2;
-
-    double scale2 = scale*scale;
-
-    int w = width / scale;
-    int h = height / scale;
-    int new_area = w * h;
-
-    unsigned char *new_rgb = (unsigned char *) malloc(3 * new_area);
-    memset(new_rgb, 0, 3 * new_area);
-
-    unsigned char *new_alpha = NULL;
-    if (png_alpha != NULL) {
-        new_alpha = (unsigned char *) malloc(new_area);
-        memset(new_alpha, 0, new_area);
-    }
-
-    int ipos = 0;
-    for (int j = 0; j < height; j++) {
-        int js = j / scale;
-        for (int i = 0; i < width; i++) {
-            int is = i/scale;
-            for (int k = 0; k < 3; k++)
-                new_rgb[3*(js * w + is) + k] += static_cast<unsigned char> ((rgb_data[3*ipos + k] + 0.5) / scale2);
-
-            if (png_alpha != NULL)
-                new_alpha[js * w + is] += static_cast<unsigned char> (png_alpha[ipos]/scale2);
-            ipos++;
-        }
-    }
-
-    free(rgb_data);
-    free(png_alpha);
-
-    rgb_data = new_rgb;
-    png_alpha = new_alpha;
-    width = w;
-    height = h;
-
-    area = w * h;
-}
-
-void
 Image::Resize(const int w, const int h) {
     
     if (width==w && height==h){
@@ -459,37 +410,6 @@ void Image::Center(const int w, const int h, const char *hex) {
         }
     }
     
-    free(rgb_data);
-    free(png_alpha);
-    rgb_data = new_rgb;
-    png_alpha = NULL;
-    width = w;
-    height = h;
-    
-}
-
-/* Fill the image with the given color and adjust its dimensions
- * to passed values.
- */
-void Image::Plain(const int w, const int h, const char *hex) {
-
-    unsigned long packed_rgb;
-    sscanf(hex, "%lx", &packed_rgb);  
-
-    unsigned long r = packed_rgb>>16;
-    unsigned long g = packed_rgb>>8 & 0xff;
-    unsigned long b = packed_rgb & 0xff;    
-
-    unsigned char *new_rgb = (unsigned char *) malloc(3 * w * h);
-    memset(new_rgb, 0, 3 * w * h);
-
-    area = w * h;
-    for (int i = 0; i < area; i++) {
-        new_rgb[3*i] = r;
-        new_rgb[3*i+1] = g;
-        new_rgb[3*i+2] = b;
-    }
-
     free(rgb_data);
     free(png_alpha);
     rgb_data = new_rgb;

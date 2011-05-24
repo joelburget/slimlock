@@ -48,13 +48,11 @@ public:
 
     bool Read(const char *filename);
 
-    void Reduce(const int factor);
     void Resize(const int w, const int h);
     void Merge(Image* background, const int x, const int y);
     void Crop(const int x, const int y, const int w, const int h);
     void Tile(const int w, const int h);
     void Center(const int w, const int h, const char *hex);
-    void Plain(const int w, const int h, const char *hex);
     
     void computeShift(unsigned long mask, unsigned char &left_shift,
                       unsigned char &right_shift);
