@@ -55,6 +55,12 @@ int main(int argc, char **argv) {
         die("slimlock-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
         die("usage: slimlock [-v]\n");
+    int pid_file = open("/var/run/slimlock.pid", O_CREAT | O_RDWR, 0666);
+    int rc = flock(pid_file, LOCK_EX | LOCK_NB);
+    if(rc) {
+        if(EWOULDBLOCK == errno)
+            exit(EXIT_FAILURE);
+    }
 
     if (geteuid() != 0)
         die("Wrong permissions: slimlock must be owned by root with setuid "

@@ -10,6 +10,8 @@
 #define __UTIL_H__
 
 #include <string>
+#include <errno.h>
+#include <sys/file.h>
 
 namespace Util {
 	void srandom(unsigned long seed);
