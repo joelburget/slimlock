@@ -35,7 +35,4 @@
 // max height/width for images
 #define MAX_DIMENSION 10000
 
-// dpms
-#define DPMS_SUSPEND_TIMEOUT 60
-
 #endif
