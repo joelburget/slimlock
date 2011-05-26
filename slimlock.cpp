@@ -23,8 +23,11 @@
 #include "cfg.h"
 #include "util.h"
 #include "panel.h"
-
+extern "C" {
+    #include "imlibimage.h"
+}
 using namespace std;
+
 
 void setBackground(const string& themedir);
 void HideCursor();
@@ -36,7 +39,7 @@ Display* dpy;
 int scr;
 Window root;
 Cfg* cfg;
-Image* image;
+Imlib_Image image;
 Panel* loginPanel;
 string themeName = "";
 
@@ -204,41 +207,43 @@ int main(int argc, char **argv) {
 void setBackground(const string& themedir) {
     string filename;
     filename = themedir + "/background.png";
-    image = new Image;
-    bool loaded = image->Read(filename.c_str());
+    //image = new Image;
+    //bool loaded =
+    image = image_read(filename.c_str());
+    bool loaded = image != NULL;
     if (!loaded){ // try jpeg if png failed
         filename = "";
         filename = themedir + "/background.jpg";
-        loaded = image->Read(filename.c_str());
+        image = image_read(filename.c_str());
+        loaded = image != NULL;
     }
     if (loaded) {
         string bgstyle = cfg->getOption("background_style");
         if (bgstyle == "stretch") {
-            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            //image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          //XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
         } else if (bgstyle == "tile") {
-            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                        XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            image_tile(image, dpy, root);
         } else if (bgstyle == "center") {
-            string hexvalue = cfg->getOption("background_color");
-            hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                          hexvalue.c_str());
+            //string hexvalue = cfg->getOption("background_color");
+            //hexvalue = hexvalue.substr(1,6);
+            //image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          //XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          //hexvalue.c_str());
         } else { // plain color or error
-            string hexvalue = cfg->getOption("background_color");
-            hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                          hexvalue.c_str());
+            //string hexvalue = cfg->getOption("background_color");
+            //hexvalue = hexvalue.substr(1,6);
+            //image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                          //XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
+                          //hexvalue.c_str());
         }
-        Pixmap p = image->createPixmap(dpy, scr, root);
-        XSetWindowBackgroundPixmap(dpy, root, p);
+        //Pixmap p = image->createPixmap(dpy, scr, root);
+        //XSetWindowBackgroundPixmap(dpy, root, p);
     }
     XClearWindow(dpy, root);
     
     XFlush(dpy);
-    delete image;
+    //delete image;
 }
 
 void HideCursor() 

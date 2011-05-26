@@ -5,8 +5,10 @@ CXX = g++
 CC  = gcc
 
 CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng14 -I/usr/include
+CFLAGS+=$(shell imlib2-config --cflags)
 CXXFLAGS=$(CFLAGS)
 LDFLAGS=-lXft -lX11 -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt
+LDFLAGS+=$(shell imlib2-config --libs)
 CUSTOM=-DHAVE_SHADOW
 NAME=slimlock
 VERSION=0.8
@@ -17,7 +19,7 @@ PREFIX=/usr
 DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
 		-DPKGDATADIR=\"$(PREFIX)/share/slim\" -DSYSCONFDIR=\"$(CFGDIR)\"
 
-OBJECTS=cfg.o image.o panel.o slimlock.o util.o jpeg.o png.o
+OBJECTS=cfg.o image.o panel.o slimlock.o util.o jpeg.o png.o imlibimage.o
 
 all: slimlock
 	@chmod 4755 slimlock
