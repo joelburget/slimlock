@@ -77,6 +77,8 @@ int main(int argc, char **argv) {
     CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
     BOOL dpms_state, using_dpms;
     unsigned int cfg_dpms_timeout;
+
+    unsigned int cfg_passwd_timeout;
     // Read current user's theme
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
@@ -158,6 +160,12 @@ int main(int argc, char **argv) {
         if (!dpms_state)
             DPMSEnable(dpy);
     }
+
+    // Get password timeout
+    cfg_passwd_timeout = Cfg::string2int(cfg->getOption("wrong_passwd_timeout").c_str());
+    // Let's just make sure it has a sane value
+    cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
+    
     // Main loop
     while (true)
     {
@@ -181,7 +189,7 @@ int main(int argc, char **argv) {
             panelClosed = false;
             loginPanel->ClearPanel();
             XBell(dpy, 100);
-            sleep(2);
+            sleep(cfg_passwd_timeout);
             continue;
         }
 
