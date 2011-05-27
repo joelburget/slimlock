@@ -86,7 +86,9 @@ Cfg::Cfg()
     options.insert(option("msg_shadow_yoffset", "0"));
     options.insert(option("msg_shadow_color","#FFFFFF"));
 
+    // slimlock-specific options
     options.insert(option("dpms_timeout", "60"));
+    options.insert(option("wrong_passwd_timeout", "2"));
 
     error = "";
 
