@@ -61,11 +61,8 @@ public:
 
 
 private:
-    int width, height, area;
-    unsigned char *rgb_data;
-    unsigned char *png_alpha;
-
-    int quality_;
+    int width, height;
+    Imlib_Image image;
 };
 
 #endif

@@ -70,7 +70,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Load panel and background image
     string panelpng = "";
     panelpng = panelpng + themedir +"/panel.png";
-    image = new Image;
+    image = new Image(Dpy);
     bool loaded = image->Read(panelpng.c_str());
     if (!loaded) { // try jpeg if png failed
         panelpng = themedir + "/panel.jpg";
@@ -102,21 +102,21 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
         }
     }
     if (bgstyle == "stretch") {
-        bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
+        //bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
     } else if (bgstyle == "tile") {
-        bg->Tile(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
+        image_tile(image, dpy, root);
     } else if (bgstyle == "center") {
-        string hexvalue = cfg->getOption("background_color");
-        hexvalue = hexvalue.substr(1,6);
-        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   hexvalue.c_str());
+        //string hexvalue = cfg->getOption("background_color");
+        //hexvalue = hexvalue.substr(1,6);
+        //bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   //XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   //hexvalue.c_str());
     } else { // plain color or error
-        string hexvalue = cfg->getOption("background_color");
-        hexvalue = hexvalue.substr(1,6);
-        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   hexvalue.c_str());
+        //string hexvalue = cfg->getOption("background_color");
+        //hexvalue = hexvalue.substr(1,6);
+        //bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   //XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   //hexvalue.c_str());
     }
 
     string cfgX = cfg->getOption("input_panel_x");

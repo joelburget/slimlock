@@ -22,65 +22,23 @@ using namespace std;
 
 #include "image.h"
 
-extern "C" {
-    int
-    read_png(const char *filename, int *width, int *height, unsigned char **rgb,
-             unsigned char **alpha);
-    int
-    read_jpeg(const char *filename, int *width, int *height, unsigned char **rgb);
-}
+Image::Image(Display *dpy) {
+    int scr = DefaultScreen(dpy);
 
-Image::Image() : width(0), height(0), area(0),
-rgb_data(NULL), png_alpha(NULL), quality_(80) {}
+	imlib_context_set_display(dpy);
+	imlib_context_set_visual(DefaultVisual(dpy, scr));
+	imlib_context_set_colormap(DefaultColormap(dpy, scr));
 
-Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned char *alpha) :
-width(w), height(h), area(w*h), quality_(80) {
-    width = w;
-    height = h;
-    area = w * h;
-
-    rgb_data = (unsigned char *) malloc(3 * area);
-    memcpy(rgb_data, rgb, 3 * area);
-
-    if (alpha == NULL) {
-        png_alpha = NULL;
-    } else {
-        png_alpha = (unsigned char *) malloc(area);
-        memcpy(png_alpha, alpha, area);
-    }
 }
 
 Image::~Image() {
-    free(rgb_data);
-    free(png_alpha);
+    imlib_free_image();
 }
 
 bool
 Image::Read(const char *filename) {
-    char buf[4];
-    unsigned char *ubuf = (unsigned char *) buf;
-    int success = 0;
-
-    FILE *file;
-    file = fopen(filename, "rb");
-    if (file == NULL)
-        return(false);
-
-    /* see what kind of file we have */
-
-    fread(buf, 1, 4, file);
-    fclose(file);
-
-    if ((ubuf[0] == 0x89) && !strncmp("PNG", buf+1, 3)) {
-        success = read_png(filename, &width, &height, &rgb_data, &png_alpha);
-    }
-    else if ((ubuf[0] == 0xff) && (ubuf[1] == 0xd8)){
-        success = read_jpeg(filename, &width, &height, &rgb_data);
-    } else {
-        fprintf(stderr, "Unknown image format\n");
-        success = 0;
-    }
-    return(success == 1);
+    image = imlib_load_image(filename);
+    return(image); 
 }
 
 void
@@ -439,7 +397,6 @@ Image::computeShift(unsigned long mask,
 
 Pixmap
 Image::createPixmap(Display* dpy, int scr, Window win) {
-    int i, j;   // loop variables
 
     const int depth = DefaultDepth(dpy, scr);
     Visual *visual = DefaultVisual(dpy, scr);
@@ -447,127 +404,6 @@ Image::createPixmap(Display* dpy, int scr, Window win) {
 
     Pixmap tmp = XCreatePixmap(dpy, win, width, height,
                                depth);
-
-    char *pixmap_data = NULL;
-    switch (depth) {
-    case 32:
-    case 24:
-        pixmap_data = new char[4 * width * height];
-        break;
-    case 16:
-    case 15:
-        pixmap_data = new char[2 * width * height];
-        break;
-    case 8:
-        pixmap_data = new char[width * height];
-        break;
-    default:
-        break;
-    }
-
-    XImage *ximage = XCreateImage(dpy, visual, depth, ZPixmap, 0,
-                                  pixmap_data, width, height,
-                                  8, 0);
-
-    int entries;
-    XVisualInfo v_template;
-    v_template.visualid = XVisualIDFromVisual(visual);
-    XVisualInfo *visual_info = XGetVisualInfo(dpy, VisualIDMask,
-                               &v_template, &entries);
-
-    unsigned long ipos = 0;
-    switch (visual_info->c_class) {
-    case PseudoColor: {
-            XColor xc;
-            xc.flags = DoRed | DoGreen | DoBlue;
-
-            int num_colors = 256;
-            XColor *colors = new XColor[num_colors];
-            for (i = 0; i < num_colors; i++)
-                colors[i].pixel = (unsigned long) i;
-            XQueryColors(dpy, colormap, colors, num_colors);
-
-            int *closest_color = new int[num_colors];
-
-            for (i = 0; i < num_colors; i++) {
-                xc.red = (i & 0xe0) << 8;           // highest 3 bits
-                xc.green = (i & 0x1c) << 11;        // middle 3 bits
-                xc.blue = (i & 0x03) << 14;         // lowest 2 bits
-
-                // find the closest color in the colormap
-                double distance, distance_squared, min_distance = 0;
-                for (int ii = 0; ii < num_colors; ii++) {
-                    distance = colors[ii].red - xc.red;
-                    distance_squared = distance * distance;
-                    distance = colors[ii].green - xc.green;
-                    distance_squared += distance * distance;
-                    distance = colors[ii].blue - xc.blue;
-                    distance_squared += distance * distance;
-
-                    if ((ii == 0) || (distance_squared <= min_distance)) {
-                        min_distance = distance_squared;
-                        closest_color[i] = ii;
-                    }
-                }
-            }
-
-            for (j = 0; j < height; j++) {
-                for (i = 0; i < width; i++) {
-                    xc.red = (unsigned short) (rgb_data[ipos++] & 0xe0);
-                    xc.green = (unsigned short) (rgb_data[ipos++] & 0xe0);
-                    xc.blue = (unsigned short) (rgb_data[ipos++] & 0xc0);
-
-                    xc.pixel = xc.red | (xc.green >> 3) | (xc.blue >> 6);
-                    XPutPixel(ximage, i, j,
-                              colors[closest_color[xc.pixel]].pixel);
-                }
-            }
-            delete [] colors;
-            delete [] closest_color;
-        }
-        break;
-    case TrueColor: {
-            unsigned char red_left_shift;
-            unsigned char red_right_shift;
-            unsigned char green_left_shift;
-            unsigned char green_right_shift;
-            unsigned char blue_left_shift;
-            unsigned char blue_right_shift;
-
-            computeShift(visual_info->red_mask, red_left_shift,
-                         red_right_shift);
-            computeShift(visual_info->green_mask, green_left_shift,
-                         green_right_shift);
-            computeShift(visual_info->blue_mask, blue_left_shift,
-                         blue_right_shift);
-
-            unsigned long pixel;
-            unsigned long red, green, blue;
-            for (j = 0; j < height; j++) {
-                for (i = 0; i < width; i++) {
-                    red = (unsigned long)
-                          rgb_data[ipos++] >> red_right_shift;
-                    green = (unsigned long)
-                            rgb_data[ipos++] >> green_right_shift;
-                    blue = (unsigned long)
-                           rgb_data[ipos++] >> blue_right_shift;
-
-                    pixel = (((red << red_left_shift) & visual_info->red_mask)
-                             | ((green << green_left_shift)
-                                & visual_info->green_mask)
-                             | ((blue << blue_left_shift)
-                                & visual_info->blue_mask));
-
-                    XPutPixel(ximage, i, j, pixel);
-                }
-            }
-        }
-        break;
-    default: {
-            cerr << "Login.app: could not load image" << endl;
-            return(tmp);
-        }
-    }
 
     GC gc = XCreateGC(dpy, win, 0, NULL);
     XPutImage(dpy, tmp, gc, ximage, 0, 0, 0, 0, width, height);

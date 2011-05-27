@@ -11,7 +11,7 @@ LIBS = -L/usr/lib -lc -lcrypt -lX11 -lXext -lXft -ljpeg -lpng -lpng12 -lfreetype
 # flags
 CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng12 -I/usr/include
 CXXFLAGS=$(CFLAGS)
-LDFLAGS = -s ${LIBS} $(shell imlib2-config --libs)
+LDFLAGS = -s ${LIBS}
 
 NAME=slimlock
 VERSION=0.1
