@@ -84,7 +84,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
         }
     }
 
-    Image* bg = new Image();
+    Image* bg = new Image(Dpy);
     string bgstyle = cfg->getOption("background_style");
     if (bgstyle != "color") {
         panelpng = themedir +"/background.png";
@@ -101,22 +101,25 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
             }
         }
     }
+
+    bool tiled = false;
+    
     if (bgstyle == "stretch") {
-        //bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
+        bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
     } else if (bgstyle == "tile") {
-        image_tile(image, dpy, root);
+        tiled = true;
     } else if (bgstyle == "center") {
-        //string hexvalue = cfg->getOption("background_color");
-        //hexvalue = hexvalue.substr(1,6);
-        //bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   //XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   //hexvalue.c_str());
+        string hexvalue = cfg->getOption("background_color");
+        hexvalue = hexvalue.substr(1,6);
+        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   hexvalue.c_str());
     } else { // plain color or error
-        //string hexvalue = cfg->getOption("background_color");
-        //hexvalue = hexvalue.substr(1,6);
-        //bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   //XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   //hexvalue.c_str());
+        string hexvalue = cfg->getOption("background_color");
+        hexvalue = hexvalue.substr(1,6);
+        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+                   hexvalue.c_str());
     }
 
     string cfgX = cfg->getOption("input_panel_x");
@@ -127,7 +130,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Merge image into background
     image->Merge(bg, X, Y);
     delete bg;
-    PanelPixmap = image->createPixmap(Dpy, Scr, Root);
+    PanelPixmap = image->createPixmap(Dpy, Scr, Root, tiled);
 
     // Read (and substitute vars in) the welcome message
     welcome_message = cfg->getWelcomeMessage();

@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
 
 void setBackground(const string& themedir) {
     string filename;
+    bool tiled = false;
     filename = themedir + "/background.png";
     image = new Image(dpy);
     bool loaded = image->Read(filename.c_str());
@@ -227,6 +228,7 @@ void setBackground(const string& themedir) {
         } else if (bgstyle == "tile") {
             image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
                         XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+            tiled = true;
         } else if (bgstyle == "center") {
             string hexvalue = cfg->getOption("background_color");
             hexvalue = hexvalue.substr(1,6);
@@ -240,7 +242,7 @@ void setBackground(const string& themedir) {
                           XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
                           hexvalue.c_str());
         }
-        Pixmap p = image->createPixmap(dpy, scr, root);
+        Pixmap p = image->createPixmap(dpy, scr, root, tiled);
         XSetWindowBackgroundPixmap(dpy, root, p);
     }
     XClearWindow(dpy, root);

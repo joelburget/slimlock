@@ -4,9 +4,9 @@
 CXX = g++
 CC  = gcc
 
-CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng14 -I/usr/include
+CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/libpng14 -I/usr/include $(shell imlib2-config --cflags)
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=-lXft -lX11 -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt
+LDFLAGS=-lXft -lX11 -lfontconfig -lpng14 -lz -lm -lcrypt -lXmu -lpng -ljpeg -lrt $(shell imlib2-config --libs)
 CUSTOM=-DHAVE_SHADOW
 NAME=slimlock
 VERSION=0.8

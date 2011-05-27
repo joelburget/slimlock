@@ -16,34 +16,21 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xmu/WinUtil.h>
-
+extern "C" {
+#include <Imlib2.h>
+}
 class Image {
 public:
     Image();
-    Image(const int w, const int h, const unsigned char *rgb,
-          const unsigned char *alpha);
+    Image(Display *dpy);
 
     ~Image();
-
-    const unsigned char * getPNGAlpha() const {
-        return(png_alpha);
-    };
-    const unsigned char * getRGBData() const {
-        return(rgb_data);
-    };
-
-    void getPixel(double px, double py, unsigned char *pixel);
-    void getPixel(double px, double py, unsigned char *pixel,
-                  unsigned char *alpha);
 
     int Width() const  {
         return(width);
     };
     int Height() const {
         return(height);
-    };
-    void Quality(const int q) {
-        quality_ = q;
     };
 
     bool Read(const char *filename);
@@ -54,10 +41,8 @@ public:
     void Tile(const int w, const int h);
     void Center(const int w, const int h, const char *hex);
     
-    void computeShift(unsigned long mask, unsigned char &left_shift,
-                      unsigned char &right_shift);
 
-    Pixmap createPixmap(Display* dpy, int scr, Window win);
+    Pixmap createPixmap(Display* dpy, int scr, Window win, bool tiled);
 
 
 private:
