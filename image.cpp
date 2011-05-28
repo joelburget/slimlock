@@ -39,11 +39,17 @@ Image::~Image() {
 bool
 Image::Read(const char *filename) {
     image = imlib_load_image(filename);
-    return(image); 
+    imlib_context_set_image(image);
+    if (image) {
+        width = imlib_image_get_width();
+        height = imlib_image_get_height();
+    }
+    return(image != NULL); 
 }
 
 void
 Image::Resize(const int w, const int h) {
+    imlib_context_set_image(image);
     image = imlib_create_cropped_scaled_image(0, 0, width, height, w, h);
     width = w;
     height = h;
@@ -65,10 +71,10 @@ void Image::Merge(Image* background, const int x, const int y) {
 
     imlib_context_set_image(background);
     imlib_blend_image_onto_image(image, 1, 0, 0, width, height, x, y, width, height);
-
+    image = background;
     imlib_context_set_image(image);
-    imlib_free_image();
-    imlib_context_set_image(background);
+    //imlib_free_image();
+    //imlib_context_set_image(background);
 }
 
 /* Tile the image growing its size to the minimum entire
