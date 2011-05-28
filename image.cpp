@@ -70,6 +70,7 @@ void Image::Merge(Image* background, const int x, const int y) {
         background->Crop(x, y, width, height);
 
     imlib_context_set_image(background);
+    imlib_context_set_blend(1);
     imlib_blend_image_onto_image(image, 1, 0, 0, width, height, x, y, width, height);
     image = background;
     imlib_context_set_image(image);
@@ -83,8 +84,22 @@ void Image::Merge(Image* background, const int x, const int y) {
  * Note that this flattens image (alpha removed)
  */
 void Image::Tile(const int w, const int h) {
+    Imlib_Image tmp = imlib_create_image(w, h);
+    int tiles_x, tiles_y;
     
-    
+    tiles_x = w / width;
+    tiles_y = h / height;
+    imlib_context_set_image(tmp);
+    for(int i=0; i <= tiles_x; i++) {
+        for(int j=0; j <= tiles_y; j++) {
+            imlib_context_set_blend(1);
+            imlib_blend_image_onto_image(image, 0, 0, 0, width, height,
+                                         i * width, j * height, width, height);
+        }
+    }
+
+    image = imlib_clone_image();
+    imlib_context_set_image(image);
 
 }
 
@@ -117,7 +132,8 @@ void Image::Center(const int w, const int h, const char *hex) {
     imlib_image_fill_rectangle(0, 0, w, h);
     pos_x = (w - width) / 2;
     pos_y = (h - height) / 2;
-
+    
+    imlib_context_set_blend(1);
     imlib_blend_image_onto_image(image, 1, 0, 0, width, height, pos_x, pos_y,
                                  width, height);
 
@@ -127,43 +143,18 @@ void Image::Center(const int w, const int h, const char *hex) {
 }
 
 Pixmap
-Image::createPixmap(Display* dpy, int scr, Window win, bool tiled) {
+Image::createPixmap(Display* dpy, int scr, Window win) {
 
     const int depth = DefaultDepth(dpy, scr);
-    Visual *visual = DefaultVisual(dpy, scr);
-    Colormap colormap = DefaultColormap(dpy, scr);
     Pixmap tmp = XCreatePixmap(dpy, win, XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
                                XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
                                depth);
 
     imlib_context_set_image(image);
 
-    if (tiled) {
-        XGCValues gc_val;
-        unsigned long gc_mask;
-
-
-        Pixmap pmap = XCreatePixmap(dpy, win, width, height, depth);
-        imlib_context_set_drawable(pmap);
-        imlib_render_image_on_drawable(0, 0);
-
-        gc_val.tile = tmp;
-        gc_val.fill_style = FillTiled;
-        gc_mask = GCTile | GCFillStyle;
+    imlib_context_set_drawable(tmp);
+    imlib_render_image_on_drawable(0, 0);
     
-        GC gc = XCreateGC(dpy, tmp, gc_mask, &gc_val);
-
-        XFillRectangle(dpy, tmp, gc, 0, 0,
-                       XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                       XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
-        XFreePixmap(dpy, pmap);
-        XFreeGC(dpy, gc);
-    } else {
-        imlib_context_set_drawable(tmp);
-        imlib_render_image_on_drawable(0, 0);
-    }
-    
-
     return(tmp);
 }
 

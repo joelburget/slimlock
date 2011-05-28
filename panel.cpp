@@ -102,12 +102,11 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
         }
     }
 
-    bool tiled = false;
-    
     if (bgstyle == "stretch") {
         bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
     } else if (bgstyle == "tile") {
-        tiled = true;
+        bg->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
+                 XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
     } else if (bgstyle == "center") {
         string hexvalue = cfg->getOption("background_color");
         hexvalue = hexvalue.substr(1,6);
@@ -130,7 +129,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Merge image into background
     image->Merge(bg, X, Y);
     delete bg;
-    PanelPixmap = image->createPixmap(Dpy, Scr, Root, tiled);
+    PanelPixmap = image->createPixmap(Dpy, Scr, Root);
 
     // Read (and substitute vars in) the welcome message
     welcome_message = cfg->getWelcomeMessage();

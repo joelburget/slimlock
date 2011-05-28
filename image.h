@@ -42,7 +42,7 @@ public:
     void Center(const int w, const int h, const char *hex);
     
 
-    Pixmap createPixmap(Display* dpy, int scr, Window win, bool tiled);
+    Pixmap createPixmap(Display* dpy, int scr, Window win);
 
 
 private:
