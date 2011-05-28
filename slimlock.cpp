@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
 void setBackground(const string& themedir) {
     string filename;
     filename = themedir + "/background.png";
-    image = new Image(dpy);
+    image = new Image;
     bool loaded = image->Read(filename.c_str());
     if (!loaded){ // try jpeg if png failed
         filename = "";

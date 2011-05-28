@@ -22,13 +22,7 @@ using namespace std;
 
 #include "image.h"
 
-Image::Image(Display *dpy) {
-    int scr = DefaultScreen(dpy);
-
-	imlib_context_set_display(dpy);
-	imlib_context_set_visual(DefaultVisual(dpy, scr));
-	imlib_context_set_colormap(DefaultColormap(dpy, scr));
-
+Image::Image() {
 }
 
 Image::~Image() {
@@ -53,7 +47,6 @@ Image::Resize(const int w, const int h) {
     image = imlib_create_cropped_scaled_image(0, 0, width, height, w, h);
     width = w;
     height = h;
-    imlib_context_set_image(image);
 }
 
 /* Merge the image with a background, taking care of the
@@ -68,14 +61,9 @@ void Image::Merge(Image* background, const int x, const int y) {
 
     if (background->Width()*background->Height() != width*height)
         background->Crop(x, y, width, height);
-
     imlib_context_set_image(background);
-    imlib_context_set_blend(1);
-    imlib_blend_image_onto_image(image, 1, 0, 0, width, height, x, y, width, height);
+    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
     image = background;
-    imlib_context_set_image(image);
-    //imlib_free_image();
-    //imlib_context_set_image(background);
 }
 
 /* Tile the image growing its size to the minimum entire
@@ -92,15 +80,12 @@ void Image::Tile(const int w, const int h) {
     imlib_context_set_image(tmp);
     for(int i=0; i <= tiles_x; i++) {
         for(int j=0; j <= tiles_y; j++) {
-            imlib_context_set_blend(1);
             imlib_blend_image_onto_image(image, 0, 0, 0, width, height,
                                          i * width, j * height, width, height);
         }
     }
 
     image = imlib_clone_image();
-    imlib_context_set_image(image);
-
 }
 
 /* Crop the image
@@ -110,7 +95,6 @@ void Image::Crop(const int x, const int y, const int w, const int h) {
     image = imlib_create_cropped_image(x, y, w, h);
     width = w;
     height = h;
-    imlib_context_set_image(image);
 }
 
 /* Center the image in a rectangle of given width and height.
@@ -133,8 +117,7 @@ void Image::Center(const int w, const int h, const char *hex) {
     pos_x = (w - width) / 2;
     pos_y = (h - height) / 2;
     
-    imlib_context_set_blend(1);
-    imlib_blend_image_onto_image(image, 1, 0, 0, width, height, pos_x, pos_y,
+    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, pos_x, pos_y,
                                  width, height);
 
     image = imlib_clone_image();
@@ -144,7 +127,10 @@ void Image::Center(const int w, const int h, const char *hex) {
 
 Pixmap
 Image::createPixmap(Display* dpy, int scr, Window win) {
-
+	imlib_context_set_display(dpy);
+	imlib_context_set_visual(DefaultVisual(dpy, scr));
+	imlib_context_set_colormap(DefaultColormap(dpy, scr));
+    
     const int depth = DefaultDepth(dpy, scr);
     Pixmap tmp = XCreatePixmap(dpy, win, XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
                                XHeightOfScreen(ScreenOfDisplay(dpy, scr)),

@@ -70,7 +70,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Load panel and background image
     string panelpng = "";
     panelpng = panelpng + themedir +"/panel.png";
-    image = new Image(Dpy);
+    image = new Image;
     bool loaded = image->Read(panelpng.c_str());
     if (!loaded) { // try jpeg if png failed
         panelpng = themedir + "/panel.jpg";
@@ -84,7 +84,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
         }
     }
 
-    Image* bg = new Image(Dpy);
+    Image* bg = new Image;
     string bgstyle = cfg->getOption("background_style");
     if (bgstyle != "color") {
         panelpng = themedir +"/background.png";

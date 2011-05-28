@@ -22,7 +22,6 @@ extern "C" {
 class Image {
 public:
     Image();
-    Image(Display *dpy);
 
     ~Image();
 
