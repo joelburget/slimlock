@@ -61,9 +61,9 @@ void Image::Merge(Image* background, const int x, const int y) {
 
     if (background->Width()*background->Height() != width*height)
         background->Crop(x, y, width, height);
-    imlib_context_set_image(background);
-    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
-    image = background;
+    imlib_context_set_image(background->GetImage());
+    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, 0, 0, width, height);
+    image = imlib_clone_image();
 }
 
 /* Tile the image growing its size to the minimum entire
@@ -86,6 +86,8 @@ void Image::Tile(const int w, const int h) {
     }
 
     image = imlib_clone_image();
+    width = w;
+    height = h;
 }
 
 /* Crop the image

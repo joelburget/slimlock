@@ -31,7 +31,9 @@ public:
     int Height() const {
         return(height);
     };
-
+    Imlib_Image GetImage() {
+        return(image);
+    }
     bool Read(const char *filename);
 
     void Resize(const int w, const int h);
