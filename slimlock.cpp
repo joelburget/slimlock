@@ -19,6 +19,10 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/dpms.h>
+#include <security/pam_appl.h>
+#include <err.h>
+
+
 
 #include "cfg.h"
 #include "util.h"
@@ -39,6 +43,8 @@ Cfg* cfg;
 Image* image;
 Panel* loginPanel;
 string themeName = "";
+
+pam_handle_t *pam_handle;
 
 static void
 die(const char *errstr, ...) {
@@ -63,16 +69,6 @@ int main(int argc, char **argv) {
         if(EWOULDBLOCK == errno)
             exit(EXIT_FAILURE);
     }
-
-    if (geteuid() != 0)
-        die("Wrong permissions: slimlock must be owned by root with setuid "
-            "flagged.\n\n"
-            "Set permissions as follows:\n"
-            "sudo chown root slimlock && sudo chmod ug+s slimlock\n\n"
-            "You should get something like this:\n"
-            "[joel@arch slimlock]$ ls -l | grep \"slimlock\"\n"
-            "-rwsr-sr-x 1 root users 172382 Dec 24 21:51 slimlock\n\n");
-
 
     CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
     BOOL dpms_state, using_dpms;
@@ -266,33 +262,39 @@ void HideCursor()
     }
 }
 
+static int ConvCallback(int num_msg, const struct pam_message **msg,
+                         struct pam_response **resp, void *appdata_ptr)
+{
+    /* PAM expects an array of responses, one for each message */
+    if (num_msg == 0 ||
+        (*resp = (pam_response*) calloc(num_msg, sizeof(struct pam_message))) == NULL)
+        return 1;
+
+    for (int c = 0; c < num_msg; c++) {
+        if (msg[c]->msg_style != PAM_PROMPT_ECHO_OFF &&
+            msg[c]->msg_style != PAM_PROMPT_ECHO_ON)
+            continue;
+
+        /* return code is currently not used but should be set to zero */
+        resp[c]->resp_retcode = 0;
+        if ((resp[c]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL)
+            return 1;
+    }
+
+    return 0;
+}
+
+
 bool AuthenticateUser()
 {
+    struct pam_conv conv = {ConvCallback, NULL};
     loginPanel->EventHandler(Panel::GET_PASSWD);
-    
-    char *encrypted, *correct;
-    struct passwd *pw;
 
-    pw = getpwnam(loginPanel->GetName().c_str());
-    endpwent();
-    if (pw == 0)
-      return false;
+    int ret = pam_start("slimlock", loginPanel->GetName().c_str(), &conv, &pam_handle);
+    if (ret != PAM_SUCCESS)
+        errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
 
-#ifdef HAVE_SHADOW
-    struct spwd *sp = getspnam(pw->pw_name);    
-    endspent();
-    if(sp)
-        correct = sp->sp_pwdp;
-    else
-#endif        // HAVE_SHADOW
-        correct = pw->pw_passwd;
-
-    if(correct == 0 || correct[0] == '\0')
-        return true;
-
-    encrypted = crypt(loginPanel->GetPasswd().c_str(), correct);
-
-    return ((strcmp(encrypted, correct) == 0) ? true : false);
+    return(pam_authenticate(pam_handle, 0) == PAM_SUCCESS);
 }
 
 string findValidRandomTheme(const string& set)

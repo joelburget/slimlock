@@ -6,7 +6,7 @@ CC  = gcc
 
 CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include $(shell imlib2-config --cflags)
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=-lXft -lX11 -lfontconfig -lcrypt -lXmu -lrt $(shell imlib2-config --libs)
+LDFLAGS=-lXft -lX11 -lfontconfig -lcrypt -lXmu -lrt -lpam $(shell imlib2-config --libs)
 CUSTOM=-DHAVE_SHADOW
 NAME=slimlock
 VERSION=0.8
@@ -20,7 +20,6 @@ DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
 OBJECTS=cfg.o image.o panel.o slimlock.o util.o
 
 all: slimlock
-	@chmod 4755 slimlock
 
 slimlock: $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(OBJECTS) -o $(NAME)
@@ -43,5 +42,6 @@ dist:
 
 install: slimlock
 	@install -D -m 644 slimlock.1 $(DESTDIR)$(MANDIR)/man1/slimlock.1
-	@install -D -m 4755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
+	@install -D -m 755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
 	@install -D -m 644 slimlock.conf $(DESTDIR)$(CFGDIR)/slimlock.conf
+	@install -D -m 644 slimlock.pam $(DESTDIR)$(CFGDIR)/pam.d/slimlock
