@@ -14,8 +14,25 @@ directory containing you slim.conf. As root, install with 'make' then 'make
 install'.
 
 Running slimlock
--------------
+----------------
 Run with 'slimlock'.
+
+Configuration
+-------------
+Slimlock reads SLiM's slim.conf and slimlock.conf, which should be at
+$CFGDIR/etc/slimlock.conf. The currently available settings and their defaults
+are:
+
+-	dpms_standby_timeout: number of seconds of inactivity before the screen
+	blanks.
+	-  Default: 60
+-	dpms_suspend_timeout: same as above, but the screen goes into suspend mode.
+	-  Default: 300
+-	dpms_off_timeout: same as above, but the screen turns off.
+	-  Default: 600
+-	wrong_passwd_timeout: number of seconds after entering an incorrect password
+	before slimlock will accept another attempt.
+	-  Default: 2
 
 Copyright
 ---------

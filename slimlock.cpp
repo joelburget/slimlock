@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 
     CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
     BOOL dpms_state, using_dpms;
-    unsigned int cfg_dpms_timeout;
+    unsigned int cfg_dpms_standby, cfg_dpms_suspend, cfg_dpms_off;
 
     unsigned int cfg_passwd_timeout;
     // Read current user's theme
@@ -149,12 +149,17 @@ int main(int argc, char **argv) {
     bool panelClosed = true;
 
     // Set up DPMS
-    cfg_dpms_timeout = Cfg::string2int(cfg->getOption("dpms_timeout").c_str());
-    using_dpms = DPMSCapable(dpy) && (cfg_dpms_timeout > 0);
+    cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
+    cfg_dpms_suspend = Cfg::string2int(cfg->getOption("dpms_suspend_timeout").c_str());
+    cfg_dpms_off = Cfg::string2int(cfg->getOption("dpms_off_timeout").c_str());
+    using_dpms = DPMSCapable(dpy) && (cfg_dpms_standby > 0);
     if (using_dpms) {
         DPMSGetTimeouts(dpy, &dpms_standby, &dpms_suspend, &dpms_off);
-        DPMSSetTimeouts(dpy, cfg_dpms_timeout,
-                        dpms_suspend, dpms_off);
+        // If 0, use existing settings instead
+        cfg_dpms_suspend = cfg_dpms_suspend || dpms_suspend;
+        cfg_dpms_off = cfg_dpms_off || dpms_off;
+        DPMSSetTimeouts(dpy, cfg_dpms_standby,
+                        cfg_dpms_suspend, cfg_dpms_off);
     
         DPMSInfo(dpy, &dpms_level, &dpms_state);
         if (!dpms_state)
