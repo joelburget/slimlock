@@ -13,7 +13,7 @@ Requires X11, libpng, libjpeg, freetype. Change CFGDIR in the makefile to the
 directory containing you slim.conf. As root, install with 'make' then 'make
 install'.
 
-Running slock
+Running slimlock
 -------------
 Run with 'slimlock'.
 
