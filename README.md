@@ -26,8 +26,6 @@ are:
 -	dpms_standby_timeout: number of seconds of inactivity before the screen
 	blanks.
 	-  Default: 60
--	dpms_suspend_timeout: same as above, but the screen goes into suspend mode.
-	-  Default: 300
 -	dpms_off_timeout: same as above, but the screen turns off.
 	-  Default: 600
 -	wrong_passwd_timeout: number of seconds after entering an incorrect password

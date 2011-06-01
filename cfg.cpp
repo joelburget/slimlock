@@ -88,7 +88,6 @@ Cfg::Cfg()
 
     // slimlock-specific options
     options.insert(option("dpms_standby_timeout", "60"));
-    options.insert(option("dpms_suspend_timeout", "300"));
     options.insert(option("dpms_off_timeout", "600"));
     options.insert(option("wrong_passwd_timeout", "2"));
 
