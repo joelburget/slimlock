@@ -15,7 +15,7 @@
 #define _IMAGE_H_
 
 #include <X11/Xlib.h>
-#include <X11/Xmu/WinUtil.h>
+#include <X11/Xutil.h>
 extern "C" {
 #include <Imlib2.h>
 }

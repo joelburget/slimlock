@@ -6,7 +6,7 @@ CC  = gcc
 
 CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include $(shell imlib2-config --cflags)
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=-lXft -lX11 -lfontconfig -lcrypt -lXmu -lrt -lpam $(shell imlib2-config --libs)
+LDFLAGS=$(shell imlib2-config --libs) -lXft -lX11 -lfontconfig -lcrypt -lXmu -lrt -lpam 
 CUSTOM=-DHAVE_SHADOW
 NAME=slimlock
 VERSION=0.8
