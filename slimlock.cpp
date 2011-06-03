@@ -22,8 +22,6 @@
 #include <security/pam_appl.h>
 #include <err.h>
 
-
-
 #include "cfg.h"
 #include "util.h"
 #include "panel.h"
@@ -33,6 +31,8 @@ using namespace std;
 void setBackground(const string& themedir);
 void HideCursor();
 bool AuthenticateUser();
+static int ConvCallback(int num_msg, const struct pam_message **msg,
+                        struct pam_response **resp, void *appdata_ptr);
 string findValidRandomTheme(const string& set);
 
 // I really didn't wanna put these globals here, but it's the only way...
@@ -45,6 +45,7 @@ Panel* loginPanel;
 string themeName = "";
 
 pam_handle_t *pam_handle;
+struct pam_conv conv = {ConvCallback, NULL};
 
 static void
 die(const char *errstr, ...) {
@@ -69,6 +70,10 @@ int main(int argc, char **argv) {
         if(EWOULDBLOCK == errno)
             exit(EXIT_FAILURE);
     }
+
+    // We need to have user up here, so that the PAM stuff can know who to
+    // authenticate
+    const char *user = getenv("USER");
 
     CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
     BOOL dpms_state, using_dpms;
@@ -144,6 +149,7 @@ int main(int argc, char **argv) {
     loginPanel = new Panel(dpy, scr, root, cfg, themedir);
     bool panelClosed = true;
 
+
     // Set up DPMS
     cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
     cfg_dpms_off = Cfg::string2int(cfg->getOption("dpms_off_timeout").c_str());
@@ -163,7 +169,13 @@ int main(int argc, char **argv) {
     cfg_passwd_timeout = Cfg::string2int(cfg->getOption("wrong_passwd_timeout").c_str());
     // Let's just make sure it has a sane value
     cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
-    
+
+    // Set up PAM
+    int ret = pam_start("slimlock", getenv("USER"), &conv, &pam_handle);
+    // If we can't start PAM, just exit because slimlock won't work right
+    if (ret != PAM_SUCCESS)
+        errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
+
     // Main loop
     while (true)
     {
@@ -175,10 +187,9 @@ int main(int argc, char **argv) {
         loginPanel->Reset();
 
         char message[100];
-        char* name = getenv("USER");
         strcpy(message, "User: ");
-        strcat(message, name);
-        loginPanel->SetName(name);
+        strcat(message, user);
+        loginPanel->SetName(user);
         loginPanel->Message(message);
 
         // AuthenticateUser returns true if authenticated
@@ -264,24 +275,27 @@ void HideCursor()
     }
 }
 
-static int ConvCallback(int num_msg, const struct pam_message **msg,
-                         struct pam_response **resp, void *appdata_ptr)
+static int ConvCallback(int msgs, const struct pam_message **msg,
+                        struct pam_response **resp, void *appdata_ptr)
 {
-    /* PAM expects an array of responses, one for each message */
-    if (num_msg == 0 ||
-        (*resp = (pam_response*) calloc(num_msg, sizeof(struct pam_message))) == NULL)
-        return 1;
+    loginPanel->EventHandler(Panel::GET_PASSWD);
 
-    for (int c = 0; c < num_msg; c++) {
-        if (msg[c]->msg_style != PAM_PROMPT_ECHO_OFF &&
-            msg[c]->msg_style != PAM_PROMPT_ECHO_ON)
+    /* PAM expects an array of responses, one for each message */
+    if (msgs == 0 ||
+        (*resp = (pam_response*) calloc(msgs, sizeof(struct pam_message))) == NULL)
+        return 1;
+    
+    for (int i = 0; i < msgs; i++) {
+        if (msg[i]->msg_style != PAM_PROMPT_ECHO_OFF &&
+            msg[i]->msg_style != PAM_PROMPT_ECHO_ON)
             continue;
 
         /* return code is currently not used but should be set to zero */
-        resp[c]->resp_retcode = 0;
-        if ((resp[c]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL)
+        resp[i]->resp_retcode = 0;
+        if ((resp[i]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL)
             return 1;
     }
+
 
     return 0;
 }
@@ -289,13 +303,6 @@ static int ConvCallback(int num_msg, const struct pam_message **msg,
 
 bool AuthenticateUser()
 {
-    struct pam_conv conv = {ConvCallback, NULL};
-    loginPanel->EventHandler(Panel::GET_PASSWD);
-
-    int ret = pam_start("slimlock", loginPanel->GetName().c_str(), &conv, &pam_handle);
-    if (ret != PAM_SUCCESS)
-        errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
-
     return(pam_authenticate(pam_handle, 0) == PAM_SUCCESS);
 }
 

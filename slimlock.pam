@@ -1,1 +1,2 @@
-auth include login
+#%PAM-1.0
+auth	required pam_unix.so nodelay nullok
