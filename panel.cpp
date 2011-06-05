@@ -209,6 +209,8 @@ void Panel::WrongPassword(int timeout) {
     int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
     int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
     
+    XClearWindow(Dpy, Root);
+    
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
                     message,
                     &msgshadowcolor,
