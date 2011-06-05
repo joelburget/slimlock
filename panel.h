@@ -47,8 +47,8 @@ public:
     void OpenPanel();
     void ClosePanel();
     void ClearPanel();
+    void WrongPassword(int timeout);
     void Message(const std::string& text);
-    void Error(const std::string& text);
     void EventHandler(const FieldType& curfield);
 
     void Reset(void);

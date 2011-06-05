@@ -90,9 +90,11 @@ Cfg::Cfg()
     options.insert(option("dpms_standby_timeout", "60"));
     options.insert(option("dpms_off_timeout", "600"));
     options.insert(option("wrong_passwd_timeout", "2"));
+    options.insert(option("passwd_feedback_x", "50%"));
+    options.insert(option("passwd_feedback_y", "10%"));
+    options.insert(option("passwd_feedback_msg", "Authentication failed"));
 
     error = "";
-
 }
 
 Cfg::~Cfg() {

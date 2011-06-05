@@ -191,6 +191,35 @@ void Panel::ClearPanel() {
     XFlush(Dpy);
 }
 
+void Panel::WrongPassword(int timeout) {
+    string message = cfg->getOption("passwd_feedback_msg");
+    string cfgX, cfgY;
+    XGlyphInfo extents;
+    XftDraw *draw = XftDrawCreate(Dpy, Root,
+                                  DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
+    XftTextExtents8(Dpy, msgfont, reinterpret_cast<const XftChar8*>(message.c_str()),
+                    message.length(), &extents);
+    cfgX = cfg->getOption("passwd_feedback_x");
+    cfgY = cfg->getOption("passwd_feedback_y");
+    int shadowXOffset =
+        Cfg::string2int(cfg->getOption("msg_shadow_xoffset").c_str());
+    int shadowYOffset =
+        Cfg::string2int(cfg->getOption("msg_shadow_yoffset").c_str());
+
+    int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
+    int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
+    
+    SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
+                    message,
+                    &msgshadowcolor,
+                    shadowXOffset, shadowYOffset);
+    XBell(Dpy, 100);
+    
+    XFlush(Dpy);
+    sleep(timeout);
+    XftDrawDestroy(draw);
+}
+
 void Panel::Message(const string& text) {
     string cfgX, cfgY;
     XGlyphInfo extents;
@@ -208,22 +237,13 @@ void Panel::Message(const string& text) {
     int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
     int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
 
-    SlimDrawString8 (draw, &msgcolor, msgfont, msg_x, msg_y,
-                     text,
-                     &msgshadowcolor,
-                     shadowXOffset, shadowYOffset);
+    SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
+                    text,
+                    &msgshadowcolor,
+                    shadowXOffset, shadowYOffset);
     XFlush(Dpy);
     XftDrawDestroy(draw);
 }
-
-void Panel::Error(const string& text) {
-    ClosePanel();
-    Message(text);
-    sleep(ERROR_DURATION);
-    OpenPanel();
-    ClearPanel();
-}
-
 
 unsigned long Panel::GetColor(const char* colorname) {
     XColor color;

@@ -196,14 +196,14 @@ int main(int argc, char **argv) {
         if (!AuthenticateUser())
         {
             panelClosed = false;
-            loginPanel->ClearPanel();
-            XBell(dpy, 100);
-            sleep(cfg_passwd_timeout);
+            
+            loginPanel->ResetPasswd();
+            loginPanel->WrongPassword(cfg_passwd_timeout);
             continue;
         }
-
         loginPanel->ClosePanel();
         delete loginPanel;
+        
         // Get DPMS stuff back to normal
         if (using_dpms) {
             DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
             if (!dpms_state)
                 DPMSDisable(dpy);
         }
+        
         XCloseDisplay(dpy);
         break;
     }
@@ -299,7 +300,6 @@ static int ConvCallback(int msgs, const struct pam_message **msg,
 
     return 0;
 }
-
 
 bool AuthenticateUser()
 {
