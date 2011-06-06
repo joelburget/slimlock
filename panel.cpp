@@ -219,6 +219,7 @@ void Panel::WrongPassword(int timeout) {
     
     XFlush(Dpy);
     sleep(timeout);
+    XSync(Dpy, True);
     XftDrawDestroy(draw);
 }
 
