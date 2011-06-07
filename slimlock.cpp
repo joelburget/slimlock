@@ -147,8 +147,6 @@ int main(int argc, char **argv) {
 
     // Create panel
     loginPanel = new Panel(dpy, scr, root, cfg, themedir);
-    bool panelClosed = true;
-
 
     // Set up DPMS
     cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
@@ -179,11 +177,6 @@ int main(int argc, char **argv) {
     // Main loop
     while (true)
     {
-        if (panelClosed)
-        {
-            setBackground(themedir);
-            loginPanel->OpenPanel();
-        }
         loginPanel->Reset();
 
         char message[100];
@@ -194,9 +187,7 @@ int main(int argc, char **argv) {
 
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser())
-        {
-            panelClosed = false;
-            
+        {            
             loginPanel->ResetPasswd();
             loginPanel->WrongPassword(cfg_passwd_timeout);
             continue;
@@ -217,46 +208,6 @@ int main(int argc, char **argv) {
     }
 
     return 0;
-}
-
-void setBackground(const string& themedir) {
-    string filename;
-    filename = themedir + "/background.png";
-    image = new Image;
-    bool loaded = image->Read(filename.c_str());
-    if (!loaded){ // try jpeg if png failed
-        filename = "";
-        filename = themedir + "/background.jpg";
-        loaded = image->Read(filename.c_str());
-    }
-    if (loaded) {
-        string bgstyle = cfg->getOption("background_style");
-        if (bgstyle == "stretch") {
-            image->Resize(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
-        } else if (bgstyle == "tile") {
-            image->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                        XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
-        } else if (bgstyle == "center") {
-            string hexvalue = cfg->getOption("background_color");
-            hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                          hexvalue.c_str());
-        } else { // plain color or error
-            string hexvalue = cfg->getOption("background_color");
-            hexvalue = hexvalue.substr(1,6);
-            image->Center(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                          XHeightOfScreen(ScreenOfDisplay(dpy, scr)),
-                          hexvalue.c_str());
-        }
-        Pixmap p = image->createPixmap(dpy, scr, root);
-        XSetWindowBackgroundPixmap(dpy, root, p);
-    }
-    XClearWindow(dpy, root);
-    
-    XFlush(dpy);
-    delete image;
 }
 
 void HideCursor() 

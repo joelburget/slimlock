@@ -130,8 +130,12 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
 	
     // Merge image into background
     image->Merge(bg, X, Y);
+    Pixmap p = image->createPixmap(Dpy, Scr, Root);
+    XSetWindowBackgroundPixmap(Dpy, Root, p);
+    XClearWindow(Dpy, Root);
+    
     delete bg;
-    PanelPixmap = image->createPixmap(Dpy, Scr, Root);
+    //PanelPixmap = image->createPixmap(Dpy, Scr, Root);
 
     // Read (and substitute vars in) the welcome message
     welcome_message = cfg->getWelcomeMessage();
@@ -150,14 +154,6 @@ Panel::~Panel() {
     XftFontClose(Dpy, welcomefont);
     XftFontClose(Dpy, enterfont);
     delete image;
-
-}
-
-void Panel::OpenPanel() {
-	GC gc = XCreateGC(Dpy, PanelPixmap, 0, NULL);
-	XCopyArea(Dpy, PanelPixmap, Root, gc, 0, 0, image->Width(), image->Height(),
-			  X, Y);
-    XFlush(Dpy);
 
 }
 

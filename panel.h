@@ -44,7 +44,6 @@ public:
     Panel(Display* dpy, int scr, Window root, Cfg* config,
           const std::string& themed);
     ~Panel();
-    void OpenPanel();
     void ClosePanel();
     void WrongPassword(int timeout);
     void Message(const std::string& text);
