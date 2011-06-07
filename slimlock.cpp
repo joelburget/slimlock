@@ -139,8 +139,9 @@ int main(int argc, char **argv) {
       &wa);
     XMapWindow(dpy, root);
     XFlush(dpy);
-    XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-
+    XGrabKeyboard(dpy, RealRoot, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+    XSelectInput(dpy, root, ExposureMask | KeyPressMask);
+    
     // This hides the cursor if the user has that option enabled in their
     // configuration
     HideCursor();
