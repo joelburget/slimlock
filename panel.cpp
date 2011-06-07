@@ -125,7 +125,9 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     string cfgY = cfg->getOption("input_panel_y");
     X = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), image->Width());
     Y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), image->Height());
-
+	
+	input_name_x += X, input_name_y += Y, input_pass_x += X, input_pass_y += Y;
+	
     // Merge image into background
     image->Merge(bg, X, Y);
     delete bg;
@@ -152,42 +154,17 @@ Panel::~Panel() {
 }
 
 void Panel::OpenPanel() {
-    // Create window
-    Win = XCreateSimpleWindow(Dpy, Root, X, Y,
-                              image->Width(),
-                              image->Height(),
-                              0, GetColor("white"), GetColor("white"));
-
-    // Events
-    XSelectInput(Dpy, Win, ExposureMask | KeyPressMask);
-
-    // Set background
-    XSetWindowBackgroundPixmap(Dpy, Win, PanelPixmap);
-
-    // Show window
-    XMapWindow(Dpy, Win);
-    XMoveWindow(Dpy, Win, X, Y); // override wm positioning (for tests)
-
-    // Grab keyboard
-    XGrabKeyboard(Dpy, Win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
-
+	GC gc = XCreateGC(Dpy, PanelPixmap, 0, NULL);
+	XCopyArea(Dpy, PanelPixmap, Root, gc, 0, 0, image->Width(), image->Height(),
+			  X, Y);
     XFlush(Dpy);
 
 }
 
 void Panel::ClosePanel() {
     XUngrabKeyboard(Dpy, CurrentTime);
-    XUnmapWindow(Dpy, Win);
-    XDestroyWindow(Dpy, Win);
-    XFlush(Dpy);
-}
-
-void Panel::ClearPanel() {
-    Reset();
-    XClearWindow(Dpy, Root);
-    XClearWindow(Dpy, Win);
-    Cursor(SHOW);
-    ShowText();
+    XUnmapWindow(Dpy, Root);
+    XDestroyWindow(Dpy, Root);
     XFlush(Dpy);
 }
 
@@ -292,11 +269,11 @@ void Panel::Cursor(int visible) {
     if(visible == SHOW) {
         XSetForeground(Dpy, TextGC,
                        GetColor(cfg->getOption("input_color").c_str()));
-        XDrawLine(Dpy, Win, TextGC,
+        XDrawLine(Dpy, Root, TextGC,
                   xx+1, yy-cheight,
                   xx+1, y2);
     } else {
-        XClearArea(Dpy, Win, xx+1, yy-cheight,
+        XClearArea(Dpy, Root, xx+1, yy-cheight,
                    1, y2-(yy-cheight)+1, false);
     }
 }
@@ -323,9 +300,9 @@ void Panel::EventHandler(const Panel::FieldType& curfield) {
 }
 
 void Panel::OnExpose(void) {
-    XftDraw *draw = XftDrawCreate(Dpy, Win,
+    XftDraw *draw = XftDrawCreate(Dpy, Root,
                         DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
-    XClearWindow(Dpy, Win);
+    //XClearWindow(Dpy, Root);
     if (input_pass_x != input_name_x || input_pass_y != input_name_y){
         SlimDrawString8 (draw, &inputcolor, font, input_name_x, input_name_y,
                          NameBuffer,
@@ -423,7 +400,7 @@ bool Panel::OnKeyPress(XEvent& event) {
     };
 
     XGlyphInfo extents;
-    XftDraw *draw = XftDrawCreate(Dpy, Win,
+    XftDraw *draw = XftDrawCreate(Dpy, Root,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
 
     text = HiddenPasswdBuffer;
@@ -439,7 +416,7 @@ bool Panel::OnKeyPress(XEvent& event) {
                         formerString.length(), &extents);
         int maxLength = extents.width;
 
-        XClearArea(Dpy, Win, xx-3, yy-maxHeight-3,
+        XClearArea(Dpy, Root, xx-3, yy-maxHeight-3,
                    maxLength+6, maxHeight+6, false);
     }
 
@@ -464,7 +441,7 @@ void Panel::ShowText(){
     input_name_x == input_pass_x &&
     input_name_y == input_pass_y;
 
-    XftDraw *draw = XftDrawCreate(Dpy, Win,
+    XftDraw *draw = XftDrawCreate(Dpy, Root,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     /* welcome message */
     XftTextExtents8(Dpy, welcomefont, (XftChar8*)welcome_message.c_str(),
@@ -496,8 +473,8 @@ void Panel::ShowText(){
             Cfg::string2int(cfg->getOption("username_shadow_xoffset").c_str());
         int shadowYOffset =
             Cfg::string2int(cfg->getOption("username_shadow_yoffset").c_str());
-        password_x = Cfg::absolutepos(cfgX, image->Width(), extents.width);
-        password_y = Cfg::absolutepos(cfgY, image->Height(), extents.height);
+        password_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
+        password_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
         if (password_x >= 0 && password_y >= 0){
             SlimDrawString8 (draw, &entercolor, enterfont, password_x, password_y,
                              msg, &entershadowcolor, shadowXOffset, shadowYOffset);

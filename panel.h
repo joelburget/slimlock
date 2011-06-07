@@ -46,7 +46,6 @@ public:
     ~Panel();
     void OpenPanel();
     void ClosePanel();
-    void ClearPanel();
     void WrongPassword(int timeout);
     void Message(const std::string& text);
     void EventHandler(const FieldType& curfield);
@@ -73,7 +72,6 @@ private:
     Cfg* cfg;
 
     // Private data
-    Window Win;
     Window Root;
     Display* Dpy;
     int Scr;
@@ -125,6 +123,7 @@ private:
 
     // Pixmap data
     Pixmap PanelPixmap;
+    Pixmap PanelText;
 
     Image* image;
 
