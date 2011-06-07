@@ -139,7 +139,12 @@ int main(int argc, char **argv) {
       &wa);
     XMapWindow(dpy, root);
     XFlush(dpy);
-    XGrabKeyboard(dpy, RealRoot, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+    for(int len = 1000; len; len--) {
+        if(XGrabKeyboard(dpy, RealRoot, True, GrabModeAsync, GrabModeAsync, CurrentTime)
+            == GrabSuccess)
+            break;
+        usleep(1000);
+    }
     XSelectInput(dpy, root, ExposureMask | KeyPressMask);
     
     // This hides the cursor if the user has that option enabled in their
