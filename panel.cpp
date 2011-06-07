@@ -448,8 +448,8 @@ void Panel::ShowText(){
         Cfg::string2int(cfg->getOption("welcome_shadow_xoffset").c_str());
     int shadowYOffset =
         Cfg::string2int(cfg->getOption("welcome_shadow_yoffset").c_str());
-    welcome_x = Cfg::absolutepos(cfgX, image->Width(), extents.width);
-    welcome_y = Cfg::absolutepos(cfgY, image->Height(), extents.height);
+    welcome_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
+    welcome_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
     if (welcome_x >= 0 && welcome_y >= 0) {
         SlimDrawString8 (draw, &welcomecolor, welcomefont,
                          welcome_x, welcome_y,
@@ -486,8 +486,8 @@ void Panel::ShowText(){
             Cfg::string2int(cfg->getOption("username_shadow_xoffset").c_str());
         int shadowYOffset =
             Cfg::string2int(cfg->getOption("username_shadow_yoffset").c_str());
-        username_x = Cfg::absolutepos(cfgX, image->Width(), extents.width);
-        username_y = Cfg::absolutepos(cfgY, image->Height(), extents.height);
+        username_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
+        username_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
         if (username_x >= 0 && username_y >= 0){
             SlimDrawString8 (draw, &entercolor, enterfont, username_x, username_y,
                              msg, &entershadowcolor, shadowXOffset, shadowYOffset);
