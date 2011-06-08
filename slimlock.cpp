@@ -38,7 +38,7 @@ string findValidRandomTheme(const string& set);
 // I really didn't wanna put these globals here, but it's the only way...
 Display* dpy;
 int scr;
-Window root;
+Window win;
 Cfg* cfg;
 Image* image;
 Panel* loginPanel;
@@ -117,16 +117,15 @@ int main(int argc, char **argv) {
     if(!(dpy = XOpenDisplay(DISPLAY)))
         die("slimlock: cannot open display\n");
     scr = DefaultScreen(dpy);
-    root = RootWindow(dpy, scr);
 
     XSetWindowAttributes wa;
     wa.override_redirect = 1;
     wa.background_pixel = BlackPixel(dpy, scr);
 
     // Create a full screen window
-    Window RealRoot = RootWindow(dpy, scr);
-    root = XCreateWindow(dpy, 
-      RealRoot, 
+    Window root = RootWindow(dpy, scr);
+    win = XCreateWindow(dpy, 
+      root, 
       0, 
       0, 
       DisplayWidth(dpy, scr), 
@@ -137,22 +136,22 @@ int main(int argc, char **argv) {
       DefaultVisual(dpy, scr),
       CWOverrideRedirect | CWBackPixel,
       &wa);
-    XMapWindow(dpy, root);
+    XMapWindow(dpy, win);
     XFlush(dpy);
     for(int len = 1000; len; len--) {
-        if(XGrabKeyboard(dpy, RealRoot, True, GrabModeAsync, GrabModeAsync, CurrentTime)
+        if(XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime)
             == GrabSuccess)
             break;
         usleep(1000);
     }
-    XSelectInput(dpy, root, ExposureMask | KeyPressMask);
+    XSelectInput(dpy, win, ExposureMask | KeyPressMask);
     
     // This hides the cursor if the user has that option enabled in their
     // configuration
     HideCursor();
 
     // Create panel
-    loginPanel = new Panel(dpy, scr, root, cfg, themedir);
+    loginPanel = new Panel(dpy, scr, win, cfg, themedir);
 
     // Set up DPMS
     cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
@@ -224,12 +223,13 @@ void HideCursor()
         Pixmap            cursorpixmap;
         Cursor            cursor;
         cursordata[0]=0;
-        cursorpixmap=XCreateBitmapFromData(dpy,root,cursordata,1,1);
+        cursorpixmap=XCreateBitmapFromData(dpy, win, cursordata, 1, 1);
         black.red=0;
         black.green=0;
         black.blue=0;
-        cursor=XCreatePixmapCursor(dpy,cursorpixmap,cursorpixmap,&black,&black,0,0);
-        XDefineCursor(dpy,root,cursor);
+        cursor=XCreatePixmapCursor(dpy, cursorpixmap, cursorpixmap,
+                                   &black, &black, 0, 0);
+        XDefineCursor(dpy, win, cursor);
     }
 }
 
