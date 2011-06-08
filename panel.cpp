@@ -18,6 +18,9 @@ using namespace std;
 
 Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
              const string& themedir) {
+	// Get user
+	const char *user = getenv("USER");
+	
     // Set display
     Dpy = dpy;
     Scr = scr;
@@ -140,6 +143,11 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Read (and substitute vars in) the welcome message
     welcome_message = cfg->getWelcomeMessage();
     intro_message = cfg->getOption("intro_msg");
+    
+    SetName(user);
+    
+    // Draw the panel for the first time
+    OnExpose();
 }
 
 Panel::~Panel() {
@@ -181,8 +189,11 @@ void Panel::WrongPassword(int timeout) {
 
     int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
     int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
-    
+
+	// Clear the password field but draw everything else
+    ResetPasswd();
     XClearWindow(Dpy, Root);
+    OnExpose();
     
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
                     message,
@@ -240,20 +251,10 @@ void Panel::Cursor(int visible) {
     const char* text;
     int xx, yy, y2, cheight;
     const char* txth = "Wj"; // used to get cursor height
-
-    switch(field) {
-        case GET_PASSWD:
-            text = HiddenPasswdBuffer.c_str();
-            xx = input_pass_x;
-            yy = input_pass_y;
-            break;
-
-        case GET_NAME:
-            text = NameBuffer.c_str();
-            xx = input_name_x;
-            yy = input_name_y;
-            break;
-    }
+	
+	text = HiddenPasswdBuffer.c_str();
+	xx = input_pass_x;
+	yy = input_pass_y;
 
     XGlyphInfo extents;
     XftTextExtents8(Dpy, font, (XftChar8*)txth, strlen(txth), &extents);
@@ -274,11 +275,10 @@ void Panel::Cursor(int visible) {
     }
 }
 
-void Panel::EventHandler(const Panel::FieldType& curfield) {
+void Panel::EventHandler() {
     XEvent event;
-    field=curfield;
     bool loop = true;
-    OnExpose();
+    //OnExpose();
     while(loop) {
         XNextEvent(Dpy, &event);
         switch(event.type) {
@@ -287,7 +287,7 @@ void Panel::EventHandler(const Panel::FieldType& curfield) {
                 break;
 
             case KeyPress:
-                loop=OnKeyPress(event);
+                loop = OnKeyPress(event);
                 break;
         }
     }
@@ -300,31 +300,20 @@ void Panel::OnExpose(void) {
                         DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     //XClearWindow(Dpy, Root);
     if (input_pass_x != input_name_x || input_pass_y != input_name_y){
-        SlimDrawString8 (draw, &inputcolor, font, input_name_x, input_name_y,
-                         NameBuffer,
-                         &inputshadowcolor,
-                         inputShadowXOffset, inputShadowYOffset);
-        SlimDrawString8 (draw, &inputcolor, font, input_pass_x, input_pass_y,
-                         HiddenPasswdBuffer,
-                         &inputshadowcolor,
-                         inputShadowXOffset, inputShadowYOffset);
+        SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y,
+                        NameBuffer,
+                        &inputshadowcolor,
+                        inputShadowXOffset, inputShadowYOffset);
+        SlimDrawString8(draw, &inputcolor, font, input_pass_x, input_pass_y,
+                        HiddenPasswdBuffer,
+                        &inputshadowcolor,
+                        inputShadowXOffset, inputShadowYOffset);
     } else { //single input mode
-        switch(field) {
-            case GET_PASSWD:
-                SlimDrawString8 (draw, &inputcolor, font,
-                                 input_pass_x, input_pass_y,
-                                 HiddenPasswdBuffer,
-                                 &inputshadowcolor,
-                                 inputShadowXOffset, inputShadowYOffset);
-                break;
-            case GET_NAME:
-                SlimDrawString8 (draw, &inputcolor, font,
-                                 input_name_x, input_name_y,
-                                 NameBuffer,
-                                 &inputshadowcolor,
-                                 inputShadowXOffset, inputShadowYOffset);
-                break;
-        }
+		SlimDrawString8(draw, &inputcolor, font,
+						input_pass_x, input_pass_y,
+						HiddenPasswdBuffer,
+						&inputshadowcolor,
+						inputShadowXOffset, inputShadowYOffset);
     }
 
     XftDrawDestroy (draw);
@@ -338,7 +327,6 @@ bool Panel::OnKeyPress(XEvent& event) {
     XComposeStatus compstatus;
     int xx;
     int yy;
-    string text;
     string formerString = "";
     bool fieldTextChanged = true;
     
@@ -360,14 +348,14 @@ bool Panel::OnKeyPress(XEvent& event) {
     switch(keysym){
         case XK_Delete:
         case XK_BackSpace:
-            if (! PasswdBuffer.empty()){
+            if (!PasswdBuffer.empty()){
                 formerString=HiddenPasswdBuffer;
                 PasswdBuffer.erase(--PasswdBuffer.end());
                 HiddenPasswdBuffer.erase(--HiddenPasswdBuffer.end());
             };
             break;
         case XK_Escape:
-            if (! PasswdBuffer.empty()){
+            if (!PasswdBuffer.empty()){
                 formerString = HiddenPasswdBuffer;
                 PasswdBuffer.clear();
                 HiddenPasswdBuffer.clear();
@@ -399,7 +387,6 @@ bool Panel::OnKeyPress(XEvent& event) {
     XftDraw *draw = XftDrawCreate(Dpy, Root,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
 
-    text = HiddenPasswdBuffer;
     xx = input_pass_x;
     yy = input_pass_y;
     
@@ -418,7 +405,7 @@ bool Panel::OnKeyPress(XEvent& event) {
 
     if (fieldTextChanged) {
         SlimDrawString8 (draw, &inputcolor, font, xx, yy,
-                         text,
+                         HiddenPasswdBuffer,
                          &inputshadowcolor,
                          inputShadowXOffset, inputShadowYOffset);
     }
@@ -431,6 +418,7 @@ bool Panel::OnKeyPress(XEvent& event) {
 // Draw welcome and "enter username" message
 void Panel::ShowText(){
     string cfgX, cfgY;
+    string user_msg = "User: ";
     XGlyphInfo extents;
 
     bool singleInputMode =
@@ -459,32 +447,31 @@ void Panel::ShowText(){
 
     /* Enter username-password message */
     string msg;
-    if (!singleInputMode|| field == GET_PASSWD ) {
-        msg = cfg->getOption("password_msg");
-        XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
-                        strlen(msg.c_str()), &extents);
-        cfgX = cfg->getOption("password_x");
-        cfgY = cfg->getOption("password_y");
-        int shadowXOffset =
-            Cfg::string2int(cfg->getOption("username_shadow_xoffset").c_str());
-        int shadowYOffset =
-            Cfg::string2int(cfg->getOption("username_shadow_yoffset").c_str());
-        password_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
-        password_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
-        if (password_x >= 0 && password_y >= 0){
-            SlimDrawString8 (draw, &entercolor, enterfont, password_x, password_y,
-                             msg, &entershadowcolor, shadowXOffset, shadowYOffset);
-        }
-    }
-    if (!singleInputMode|| field == GET_NAME ) {
+	msg = cfg->getOption("password_msg");
+	XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
+					strlen(msg.c_str()), &extents);
+	cfgX = cfg->getOption("password_x");
+	cfgY = cfg->getOption("password_y");
+	shadowXOffset =
+		Cfg::string2int(cfg->getOption("username_shadow_xoffset").c_str());
+	shadowYOffset =
+		Cfg::string2int(cfg->getOption("username_shadow_yoffset").c_str());
+	password_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
+	password_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
+	if (password_x >= 0 && password_y >= 0){
+		SlimDrawString8 (draw, &entercolor, enterfont, password_x, password_y,
+						 msg, &entershadowcolor, shadowXOffset, shadowYOffset);
+	}
+	
+    if (!singleInputMode) {
         msg = cfg->getOption("username_msg");
         XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
                         strlen(msg.c_str()), &extents);
         cfgX = cfg->getOption("username_x");
         cfgY = cfg->getOption("username_y");
-        int shadowXOffset =
+        shadowXOffset =
             Cfg::string2int(cfg->getOption("username_shadow_xoffset").c_str());
-        int shadowYOffset =
+        shadowYOffset =
             Cfg::string2int(cfg->getOption("username_shadow_yoffset").c_str());
         username_x = Cfg::absolutepos(cfgX, image->Width(), extents.width) + X;
         username_y = Cfg::absolutepos(cfgY, image->Height(), extents.height) + Y;
@@ -494,6 +481,11 @@ void Panel::ShowText(){
         }
     }
     XftDrawDestroy(draw);
+    
+    // If only the password box is visible, draw the user name somewhere too
+    user_msg += GetName();
+    if (singleInputMode)
+		Message(user_msg);
 }
 
 void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
@@ -523,7 +515,7 @@ void Panel::ResetPasswd(void){
 };
 
 void Panel::SetName(const string& name){
-    NameBuffer=name;
+    NameBuffer = name;
     return;
 };
 const string& Panel::GetName(void) const{

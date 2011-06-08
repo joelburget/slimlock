@@ -35,19 +35,13 @@
 
 class Panel {
 public:
-    enum FieldType {
-        GET_NAME,
-        GET_PASSWD
-    };
-
-
     Panel(Display* dpy, int scr, Window root, Cfg* config,
-          const std::string& themed);
+          const std::string& themedir);
     ~Panel();
     void ClosePanel();
     void WrongPassword(int timeout);
     void Message(const std::string& text);
-    void EventHandler(const FieldType& curfield);
+    void EventHandler();
 
     void Reset(void);
     void ResetName(void);
@@ -90,7 +84,6 @@ private:
     XftFont* enterfont;
     XftColor entercolor;
     XftColor entershadowcolor;
-    FieldType field;
     
     // Username/Password
     std::string NameBuffer;

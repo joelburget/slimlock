@@ -71,16 +71,12 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
     }
 
-    // We need to have user up here, so that the PAM stuff can know who to
-    // authenticate
-    const char *user = getenv("USER");
-
     CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
     BOOL dpms_state, using_dpms;
     unsigned int cfg_dpms_standby, cfg_dpms_off;
 
     unsigned int cfg_passwd_timeout;
-    // Read current user's theme
+    // Read user's current theme
     cfg = new Cfg;
     cfg->readConf(CFGFILE);
     cfg->readConf(SLIMLOCKCFG);
@@ -174,21 +170,15 @@ int main(int argc, char **argv) {
     cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
 
     // Set up PAM
-    int ret = pam_start("slimlock", getenv("USER"), &conv, &pam_handle);
+    int ret = pam_start("slimlock", loginPanel->GetName().c_str(), &conv, &pam_handle);
     // If we can't start PAM, just exit because slimlock won't work right
     if (ret != PAM_SUCCESS)
         errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
-
+    
     // Main loop
     while (true)
     {
-        loginPanel->Reset();
-
-        char message[100];
-        strcpy(message, "User: ");
-        strcat(message, user);
-        loginPanel->SetName(user);
-        loginPanel->Message(message);
+        loginPanel->ResetPasswd();
 
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser())
@@ -218,17 +208,17 @@ int main(int argc, char **argv) {
 void HideCursor() 
 {
     if (cfg->getOption("hidecursor") == "true") {
-        XColor            black;
-        char            cursordata[1];
-        Pixmap            cursorpixmap;
-        Cursor            cursor;
-        cursordata[0]=0;
+        XColor black;
+        char cursordata[1];
+        Pixmap cursorpixmap;
+        Cursor cursor;
+        cursordata[0] = 0;
         cursorpixmap=XCreateBitmapFromData(dpy, win, cursordata, 1, 1);
-        black.red=0;
-        black.green=0;
-        black.blue=0;
-        cursor=XCreatePixmapCursor(dpy, cursorpixmap, cursorpixmap,
-                                   &black, &black, 0, 0);
+        black.red = 0;
+        black.green = 0;
+        black.blue = 0;
+        cursor = XCreatePixmapCursor(dpy, cursorpixmap, cursorpixmap,
+                                     &black, &black, 0, 0);
         XDefineCursor(dpy, win, cursor);
     }
 }
@@ -236,9 +226,9 @@ void HideCursor()
 static int ConvCallback(int msgs, const struct pam_message **msg,
                         struct pam_response **resp, void *appdata_ptr)
 {
-    loginPanel->EventHandler(Panel::GET_PASSWD);
+    loginPanel->EventHandler();
 
-    /* PAM expects an array of responses, one for each message */
+    // PAM expects an array of responses, one for each message
     if (msgs == 0 ||
         (*resp = (pam_response*) calloc(msgs, sizeof(struct pam_message))) == NULL)
         return 1;
@@ -248,7 +238,7 @@ static int ConvCallback(int msgs, const struct pam_message **msg,
             msg[i]->msg_style != PAM_PROMPT_ECHO_ON)
             continue;
 
-        /* return code is currently not used but should be set to zero */
+        // return code is currently not used but should be set to zero
         resp[i]->resp_retcode = 0;
         if ((resp[i]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL)
             return 1;
