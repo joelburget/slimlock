@@ -93,6 +93,7 @@ Cfg::Cfg()
     options.insert(option("passwd_feedback_x", "50%"));
     options.insert(option("passwd_feedback_y", "10%"));
     options.insert(option("passwd_feedback_msg", "Authentication failed"));
+    options.insert(option("show_username", "1"));
 
     error = "";
 }

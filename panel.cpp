@@ -484,7 +484,8 @@ void Panel::ShowText(){
     
     // If only the password box is visible, draw the user name somewhere too
     user_msg += GetName();
-    if (singleInputMode)
+    int show_username = Cfg::string2int(cfg->getOption("show_username").c_str());
+    if (singleInputMode && show_username)
 		Message(user_msg);
 }
 
