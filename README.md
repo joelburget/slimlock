@@ -25,12 +25,18 @@ are:
 
 -	dpms_standby_timeout: number of seconds of inactivity before the screen
 	blanks.
-	-  Default: 60
+	-	Default: 60
 -	dpms_off_timeout: same as above, but the screen turns off.
-	-  Default: 600
+	-	Default: 600
 -	wrong_passwd_timeout: number of seconds after entering an incorrect password
 	before slimlock will accept another attempt.
-	-  Default: 2
+	-	Default: 2
+-	passwd_feedback_msg: message to display after a failed authentication
+	attempt.
+	-	Default: Authentication failed
+-	show_username: whether or not to display the username on themes with only a
+	single input box. 1 to show, 0 to disable.
+	-	Default: 1
 
 Copyright
 ---------
