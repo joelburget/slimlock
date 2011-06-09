@@ -51,7 +51,6 @@ struct pam_conv conv = {ConvCallback, NULL};
 
 CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
 BOOL dpms_state, using_dpms;
-unsigned int cfg_dpms_standby, cfg_dpms_off;
 
 static void
 die(const char *errstr, ...) {
@@ -159,6 +158,7 @@ int main(int argc, char **argv) {
     loginPanel = new Panel(dpy, scr, win, cfg, themedir);
 
     // Set up DPMS
+    unsigned int cfg_dpms_standby, cfg_dpms_off;
     cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
     cfg_dpms_off = Cfg::string2int(cfg->getOption("dpms_off_timeout").c_str());
     using_dpms = DPMSCapable(dpy) && (cfg_dpms_standby > 0);
