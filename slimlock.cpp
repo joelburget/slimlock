@@ -21,6 +21,7 @@
 #include <X11/extensions/dpms.h>
 #include <security/pam_appl.h>
 #include <err.h>
+#include <signal.h>
 
 #include "cfg.h"
 #include "util.h"
@@ -34,6 +35,7 @@ bool AuthenticateUser();
 static int ConvCallback(int num_msg, const struct pam_message **msg,
                         struct pam_response **resp, void *appdata_ptr);
 string findValidRandomTheme(const string& set);
+void HandleSignal(int sig);
 
 // I really didn't wanna put these globals here, but it's the only way...
 Display* dpy;
@@ -47,6 +49,10 @@ string themeName = "";
 pam_handle_t *pam_handle;
 struct pam_conv conv = {ConvCallback, NULL};
 
+CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
+BOOL dpms_state, using_dpms;
+unsigned int cfg_dpms_standby, cfg_dpms_off;
+
 static void
 die(const char *errstr, ...) {
 	va_list ap;
@@ -57,12 +63,18 @@ die(const char *errstr, ...) {
 	exit(EXIT_FAILURE);
 }
 
+
 int main(int argc, char **argv) {
     if((argc == 2) && !strcmp("-v", argv[1]))
         die("slimlock-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
         die("usage: slimlock [-v]\n");
         
+    void (*prev_fn)(int);
+
+    prev_fn = signal(SIGTERM, HandleSignal);
+    if (prev_fn == SIG_IGN) signal(SIGTERM, SIG_IGN);
+    
     // create a lock file to solve mutliple instances problem
     int pid_file = open("/var/tmp/slimlock.pid", O_CREAT | O_RDWR, 0666);
     int rc = flock(pid_file, LOCK_EX | LOCK_NB);
@@ -71,9 +83,6 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
     }
 
-    CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
-    BOOL dpms_state, using_dpms;
-    unsigned int cfg_dpms_standby, cfg_dpms_off;
 
     unsigned int cfg_passwd_timeout;
     // Read user's current theme
@@ -281,4 +290,20 @@ string findValidRandomTheme(const string& set)
         }
     } while (name == "" && themes.size());
     return name;
+}
+
+void HandleSignal(int sig)
+{
+    // Get DPMS stuff back to normal
+    if (using_dpms) {
+        DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
+        // turn off DPMS if it was off when we entered
+        if (!dpms_state)
+            DPMSDisable(dpy);
+    }
+
+    loginPanel->ClosePanel();
+    delete loginPanel;
+
+    die("Caught signal; dying\n");
 }
