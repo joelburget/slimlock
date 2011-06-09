@@ -16,7 +16,7 @@
 
 using namespace std;
 
-Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
+Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
              const string& themedir) {
 	// Get user
 	const char *user = getenv("USER");
@@ -24,7 +24,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     // Set display
     Dpy = dpy;
     Scr = scr;
-    Root = root;
+    Win = win;
     cfg = config;
 
     // Init GC
@@ -34,7 +34,7 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
     gcv.foreground = GetColor("black");
     gcv.background = GetColor("white");
     gcv.graphics_exposures = False;
-    TextGC = XCreateGC(Dpy, Root, gcm, &gcv);
+    TextGC = XCreateGC(Dpy, Win, gcm, &gcv);
 
     font = XftFontOpenName(Dpy, Scr, cfg->getOption("input_font").c_str());
     welcomefont = XftFontOpenName(Dpy, Scr, cfg->getOption("welcome_font").c_str());
@@ -133,12 +133,11 @@ Panel::Panel(Display* dpy, int scr, Window root, Cfg* config,
 	
     // Merge image into background
     image->Merge(bg, X, Y);
-    Pixmap p = image->createPixmap(Dpy, Scr, Root);
-    XSetWindowBackgroundPixmap(Dpy, Root, p);
-    XClearWindow(Dpy, Root);
+    Pixmap p = image->createPixmap(Dpy, Scr, Win);
+    XSetWindowBackgroundPixmap(Dpy, Win, p);
+    XClearWindow(Dpy, Win);
     
     delete bg;
-    //PanelPixmap = image->createPixmap(Dpy, Scr, Root);
 
     // Read (and substitute vars in) the welcome message
     welcome_message = cfg->getWelcomeMessage();
@@ -167,8 +166,8 @@ Panel::~Panel() {
 
 void Panel::ClosePanel() {
     XUngrabKeyboard(Dpy, CurrentTime);
-    XUnmapWindow(Dpy, Root);
-    XDestroyWindow(Dpy, Root);
+    XUnmapWindow(Dpy, Win);
+    XDestroyWindow(Dpy, Win);
     XFlush(Dpy);
 }
 
@@ -176,7 +175,7 @@ void Panel::WrongPassword(int timeout) {
     string message = cfg->getOption("passwd_feedback_msg");
     string cfgX, cfgY;
     XGlyphInfo extents;
-    XftDraw *draw = XftDrawCreate(Dpy, Root,
+    XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     XftTextExtents8(Dpy, msgfont, reinterpret_cast<const XftChar8*>(message.c_str()),
                     message.length(), &extents);
@@ -192,7 +191,7 @@ void Panel::WrongPassword(int timeout) {
 
 	// Clear the password field but draw everything else
     ResetPasswd();
-    XClearWindow(Dpy, Root);
+    XClearWindow(Dpy, Win);
     OnExpose();
     
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
@@ -210,7 +209,7 @@ void Panel::WrongPassword(int timeout) {
 void Panel::Message(const string& text) {
     string cfgX, cfgY;
     XGlyphInfo extents;
-    XftDraw *draw = XftDrawCreate(Dpy, Root,
+    XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     XftTextExtents8(Dpy, msgfont, reinterpret_cast<const XftChar8*>(text.c_str()),
                     text.length(), &extents);
@@ -236,7 +235,7 @@ unsigned long Panel::GetColor(const char* colorname) {
     XColor color;
     XWindowAttributes attributes;
 
-    XGetWindowAttributes(Dpy, Root, &attributes);
+    XGetWindowAttributes(Dpy, Win, &attributes);
     color.pixel = 0;
 
     if(!XParseColor(Dpy, attributes.colormap, colorname, &color))
@@ -266,11 +265,11 @@ void Panel::Cursor(int visible) {
     if(visible == SHOW) {
         XSetForeground(Dpy, TextGC,
                        GetColor(cfg->getOption("input_color").c_str()));
-        XDrawLine(Dpy, Root, TextGC,
+        XDrawLine(Dpy, Win, TextGC,
                   xx+1, yy-cheight,
                   xx+1, y2);
     } else {
-        XClearArea(Dpy, Root, xx+1, yy-cheight,
+        XClearArea(Dpy, Win, xx+1, yy-cheight,
                    1, y2-(yy-cheight)+1, false);
     }
 }
@@ -296,9 +295,9 @@ void Panel::EventHandler() {
 }
 
 void Panel::OnExpose(void) {
-    XftDraw *draw = XftDrawCreate(Dpy, Root,
+    XftDraw *draw = XftDrawCreate(Dpy, Win,
                         DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
-    //XClearWindow(Dpy, Root);
+    XClearWindow(Dpy, Win);
     if (input_pass_x != input_name_x || input_pass_y != input_name_y){
         SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y,
                         NameBuffer,
@@ -384,7 +383,7 @@ bool Panel::OnKeyPress(XEvent& event) {
     };
 
     XGlyphInfo extents;
-    XftDraw *draw = XftDrawCreate(Dpy, Root,
+    XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
 
     xx = input_pass_x;
@@ -399,7 +398,7 @@ bool Panel::OnKeyPress(XEvent& event) {
                         formerString.length(), &extents);
         int maxLength = extents.width;
 
-        XClearArea(Dpy, Root, xx-3, yy-maxHeight-3,
+        XClearArea(Dpy, Win, xx-3, yy-maxHeight-3,
                    maxLength+6, maxHeight+6, false);
     }
 
@@ -425,7 +424,7 @@ void Panel::ShowText(){
     input_name_x == input_pass_x &&
     input_name_y == input_pass_y;
 
-    XftDraw *draw = XftDrawCreate(Dpy, Root,
+    XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     /* welcome message */
     XftTextExtents8(Dpy, welcomefont, (XftChar8*)welcome_message.c_str(),
@@ -500,15 +499,6 @@ void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
     }
     XftDrawString8(d, color, font, x, y, reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
 }
-
-void Panel::Reset(void){
-    ResetName();
-    ResetPasswd();
-};
-
-void Panel::ResetName(void){
-    NameBuffer.clear();
-};
 
 void Panel::ResetPasswd(void){
     PasswdBuffer.clear();

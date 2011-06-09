@@ -43,8 +43,6 @@ public:
     void Message(const std::string& text);
     void EventHandler();
 
-    void Reset(void);
-    void ResetName(void);
     void ResetPasswd(void);
     void SetName(const std::string& name);
     const std::string& GetName(void) const;
@@ -65,7 +63,7 @@ private:
     Cfg* cfg;
 
     // Private data
-    Window Root;
+    Window Win;
     Display* Dpy;
     int Scr;
     int X, Y;
