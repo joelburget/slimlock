@@ -140,7 +140,12 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     delete bg;
 
     // Read (and substitute vars in) the welcome message
-    welcome_message = cfg->getWelcomeMessage();
+    int show_welcome_msg = Cfg::string2int(cfg->getOption("show_welcome_msg").c_str());
+    if (show_welcome_msg)
+		welcome_message = cfg->getWelcomeMessage();
+	else
+		welcome_message = "";
+	
     intro_message = cfg->getOption("intro_msg");
     
     SetName(user);
