@@ -37,7 +37,9 @@ are:
 -	show_username: whether or not to display the username on themes with only a
 	single input box. 1 to show, 0 to disable.
 	-	Default: 1
-
+-	show_welcome_msg: whether or not to display SLiM's welcome message. 1 to
+	show, 0 to disable.
+	-	Default: 0
 Copyright
 ---------
 slimlock copyright (c) 2010 Joel Burget
