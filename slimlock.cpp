@@ -71,15 +71,16 @@ int main(int argc, char **argv) {
         
     void (*prev_fn)(int);
 
+    // restore DPMS settings should slimlock be killed in the line of duty
     prev_fn = signal(SIGTERM, HandleSignal);
     if (prev_fn == SIG_IGN) signal(SIGTERM, SIG_IGN);
     
     // create a lock file to solve mutliple instances problem
-    int pid_file = open("/var/tmp/slimlock.pid", O_CREAT | O_RDWR, 0666);
-    int rc = flock(pid_file, LOCK_EX | LOCK_NB);
+    int lock_file = open("/var/lock/slimlock.lock", O_CREAT | O_RDWR, 0666);
+    int rc = flock(lock_file, LOCK_EX | LOCK_NB);
     if(rc) {
         if(EWOULDBLOCK == errno)
-            exit(EXIT_FAILURE);
+            die("slimlock already running\n");
     }
 
 
