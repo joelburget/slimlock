@@ -45,6 +45,8 @@ void
 Image::Resize(const int w, const int h) {
     imlib_context_set_image(image);
     image = imlib_create_cropped_scaled_image(0, 0, width, height, w, h);
+    
+    imlib_free_image();
     width = w;
     height = h;
 }
@@ -96,6 +98,9 @@ void Image::Tile(const int w, const int h) {
 void Image::Crop(const int x, const int y, const int w, const int h) {
     imlib_context_set_image(image);
     image = imlib_create_cropped_image(x, y, w, h);
+    
+    imlib_free_image();
+    
     width = w;
     height = h;
 }
@@ -144,6 +149,8 @@ Image::createPixmap(Display* dpy, int scr, Window win) {
 
     imlib_context_set_drawable(tmp);
     imlib_render_image_on_drawable(0, 0);
+    
+    imlib_free_image();
     
     return(tmp);
 }
