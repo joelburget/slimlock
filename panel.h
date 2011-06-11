@@ -113,7 +113,6 @@ private:
 
     // Pixmap data
     Pixmap PanelPixmap;
-    Pixmap PanelText;
 
     Image* image;
 

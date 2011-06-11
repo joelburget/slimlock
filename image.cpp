@@ -59,8 +59,6 @@ void Image::Merge(Image* background, const int x, const int y) {
         return;
     }
 
-    //if (background->Width()*background->Height() != width*height)
-        //background->Crop(x, y, width, height);
     imlib_context_set_image(background->GetImage());
     imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
     image = imlib_clone_image();
@@ -69,7 +67,6 @@ void Image::Merge(Image* background, const int x, const int y) {
 /* Tile the image growing its size to the minimum entire
  * multiple of w * h.
  * The new dimensions should be > of the current ones.
- * Note that this flattens image (alpha removed)
  */
 void Image::Tile(const int w, const int h) {
     Imlib_Image tmp = imlib_create_image(w, h);
