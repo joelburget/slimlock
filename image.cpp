@@ -62,6 +62,8 @@ void Image::Merge(Image* background, const int x, const int y) {
     imlib_context_set_image(background->GetImage());
     imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
     image = imlib_clone_image();
+    
+    imlib_free_image();
 }
 
 /* Tile the image growing its size to the minimum entire
@@ -85,6 +87,8 @@ void Image::Tile(const int w, const int h) {
     image = imlib_clone_image();
     width = w;
     height = h;
+
+    imlib_free_image();
 }
 
 /* Crop the image
@@ -106,8 +110,8 @@ void Image::Center(const int w, const int h, const char *hex) {
     unsigned long packed_rgb;
     sscanf(hex, "%lx", &packed_rgb);  
 
-    unsigned long r = packed_rgb>>16;
-    unsigned long g = packed_rgb>>8 & 0xff;
+    unsigned long r = packed_rgb >> 16;
+    unsigned long g = packed_rgb >> 8 & 0xff;
     unsigned long b = packed_rgb & 0xff;
 
     imlib_context_set_image(bg);
@@ -120,6 +124,7 @@ void Image::Center(const int w, const int h, const char *hex) {
                                  width, height);
 
     image = imlib_clone_image();
+    imlib_free_image();
     
     
 }
