@@ -111,9 +111,9 @@ bool Cfg::readConf(string configfile) {
     string line, fn(configfile);
     map<string,string>::iterator it;
     string op;
-    ifstream cfgfile( fn.c_str() );
+    ifstream cfgfile(fn.c_str());
     if (cfgfile) {
-        while (getline( cfgfile, line )) {
+        while (getline(cfgfile, line)) {
             it = options.begin();
             while (it != options.end()) {
                 op = it->first;
@@ -134,7 +134,7 @@ bool Cfg::readConf(string configfile) {
 
 /* Returns the option value, trimmed */
 string Cfg::parseOption(string line, string option ) {
-    return Trim(line.substr(option.size(), line.size() - option.size()));
+    return trim(line.substr(option.size(), line.size() - option.size()));
 }
 
 
@@ -147,19 +147,19 @@ string& Cfg::getOption(string option) {
 }
 
 /* return a trimmed string */
-string Cfg::Trim( const string& s ) {
+string Cfg::trim( const string& s ) {
     if ( s.empty() ) {
         return s;
     }
     int pos = 0;
     string line = s;
     int len = line.length();
-    while ( pos < len && isspace( line[pos] ) ) {
+    while (pos < len && isspace(line[pos])) {
         ++pos;
     }
     line.erase( 0, pos );
     pos = line.length()-1;
-    while ( pos > -1 && isspace( line[pos] ) ) {
+    while (pos > -1 && isspace(line[pos])) {
         --pos;
     }
     if ( pos != -1 ) {

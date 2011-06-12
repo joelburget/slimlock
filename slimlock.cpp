@@ -270,7 +270,7 @@ string findValidRandomTheme(const string& set)
     struct stat buf;
 
     if (name[name.length()-1] == ',') {
-        name = name.substr(0, name.length() - 1);
+        name.erase(name.length() - 1);
     }
 
     Util::srandom(Util::makeseed());
@@ -281,7 +281,7 @@ string findValidRandomTheme(const string& set)
     do {
         int sel = Util::random() % themes.size();
 
-        name = Cfg::Trim(themes[sel]);
+        name = Cfg::trim(themes[sel]);
         themefile = string(THEMESDIR) +"/" + name + THEMESFILE;
         if (stat(themefile.c_str(), &buf) != 0) {
             themes.erase(find(themes.begin(), themes.end(), name));
