@@ -27,64 +27,64 @@ typedef pair<string,string> option;
 Cfg::Cfg() 
 {
     // Configuration options
-    options.insert(option("screenshot_cmd","import -window root /slim.png"));
-    options.insert(option("welcome_msg","Welcome to %host"));
-    options.insert(option("current_theme","default"));
-    options.insert(option("hidecursor","false"));
+    options.insert(option("screenshot_cmd", "import -window root /slim.png"));
+    options.insert(option("welcome_msg", "Welcome to %host"));
+    options.insert(option("current_theme", "default"));
+    options.insert(option("hidecursor", "false"));
 
     // Theme stuff
-    options.insert(option("input_panel_x","50%"));
-    options.insert(option("input_panel_y","40%"));
-    options.insert(option("input_name_x","200"));
-    options.insert(option("input_name_y","154"));
-    options.insert(option("input_pass_x","-1")); // default is single inputbox
-    options.insert(option("input_pass_y","-1"));
-    options.insert(option("input_font","Verdana:size=11"));
+    options.insert(option("input_panel_x", "50%"));
+    options.insert(option("input_panel_y", "40%"));
+    options.insert(option("input_name_x", "200"));
+    options.insert(option("input_name_y", "154"));
+    options.insert(option("input_pass_x", "-1")); // default is single inputbox
+    options.insert(option("input_pass_y", "-1"));
+    options.insert(option("input_font", "Verdana:size=11"));
     options.insert(option("input_color", "#000000"));
-    options.insert(option("input_cursor_height","20"));
-    options.insert(option("input_maxlength_name","20"));
-    options.insert(option("input_maxlength_passwd","20"));
+    options.insert(option("input_cursor_height", "20"));
+    options.insert(option("input_maxlength_name", "20"));
+    options.insert(option("input_maxlength_passwd", "20"));
     options.insert(option("input_shadow_xoffset", "0"));
     options.insert(option("input_shadow_yoffset", "0"));
-    options.insert(option("input_shadow_color","#FFFFFF"));
+    options.insert(option("input_shadow_color", "#FFFFFF"));
 
-    options.insert(option("welcome_font","Verdana:size=14"));
-    options.insert(option("welcome_color","#FFFFFF"));
-    options.insert(option("welcome_x","-1"));
-    options.insert(option("welcome_y","-1"));
+    options.insert(option("welcome_font", "Verdana:size=14"));
+    options.insert(option("welcome_color", "#FFFFFF"));
+    options.insert(option("welcome_x", "-1"));
+    options.insert(option("welcome_y", "-1"));
     options.insert(option("welcome_shadow_xoffset", "0"));
     options.insert(option("welcome_shadow_yoffset", "0"));
-    options.insert(option("welcome_shadow_color","#FFFFFF"));
+    options.insert(option("welcome_shadow_color", "#FFFFFF"));
 
-    options.insert(option("intro_msg",""));
-    options.insert(option("intro_font","Verdana:size=14"));
-    options.insert(option("intro_color","#FFFFFF"));
-    options.insert(option("intro_x","-1"));
-    options.insert(option("intro_y","-1"));
+    options.insert(option("intro_msg", ""));
+    options.insert(option("intro_font", "Verdana:size=14"));
+    options.insert(option("intro_color", "#FFFFFF"));
+    options.insert(option("intro_x", "-1"));
+    options.insert(option("intro_y", "-1"));
 
-    options.insert(option("background_style","stretch"));
-    options.insert(option("background_color","#CCCCCC"));
+    options.insert(option("background_style", "stretch"));
+    options.insert(option("background_color", "#CCCCCC"));
 
-    options.insert(option("username_font","Verdana:size=12"));
-    options.insert(option("username_color","#FFFFFF"));
-    options.insert(option("username_x","-1"));
-    options.insert(option("username_y","-1"));
-    options.insert(option("username_msg","Please enter your username"));
+    options.insert(option("username_font", "Verdana:size=12"));
+    options.insert(option("username_color", "#FFFFFF"));
+    options.insert(option("username_x", "-1"));
+    options.insert(option("username_y", "-1"));
+    options.insert(option("username_msg", "Please enter your username"));
     options.insert(option("username_shadow_xoffset", "0"));
     options.insert(option("username_shadow_yoffset", "0"));
-    options.insert(option("username_shadow_color","#FFFFFF"));
+    options.insert(option("username_shadow_color", "#FFFFFF"));
 
-    options.insert(option("password_x","-1"));
-    options.insert(option("password_y","-1"));
-    options.insert(option("password_msg","Please enter your password"));
+    options.insert(option("password_x", "-1"));
+    options.insert(option("password_y", "-1"));
+    options.insert(option("password_msg", "Please enter your password"));
 
-    options.insert(option("msg_color","#FFFFFF"));
-    options.insert(option("msg_font","Verdana:size=16:bold"));
-    options.insert(option("msg_x","40"));
-    options.insert(option("msg_y","40"));
+    options.insert(option("msg_color", "#FFFFFF"));
+    options.insert(option("msg_font", "Verdana:size=16:bold"));
+    options.insert(option("msg_x", "40"));
+    options.insert(option("msg_y", "40"));
     options.insert(option("msg_shadow_xoffset", "0"));
     options.insert(option("msg_shadow_yoffset", "0"));
-    options.insert(option("msg_shadow_color","#FFFFFF"));
+    options.insert(option("msg_shadow_color", "#FFFFFF"));
 
     // slimlock-specific options
     options.insert(option("dpms_standby_timeout", "60"));
@@ -134,7 +134,7 @@ bool Cfg::readConf(string configfile) {
 
 /* Returns the option value, trimmed */
 string Cfg::parseOption(string line, string option ) {
-    return Trim( line.substr(option.size(), line.size() - option.size()));
+    return Trim(line.substr(option.size(), line.size() - option.size()));
 }
 
 
