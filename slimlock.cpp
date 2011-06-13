@@ -7,10 +7,6 @@
  * (at your option) any later version.
  */ 
 
-#if HAVE_SHADOW
-#include <shadow.h>
-#endif
-
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
