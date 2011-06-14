@@ -44,6 +44,7 @@ are:
 Copyright
 ---------
 slimlock copyright (c) 2010-2011 Joel Burget
+
 Image handling code revamped, PAM authentication, and other miscellaneous tweaks
 by (c) 2011 Kevin Sullivan
 
