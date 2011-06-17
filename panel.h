@@ -111,9 +111,6 @@ private:
     std::string welcome_message;
     std::string intro_message;
 
-    // Pixmap data
-    Pixmap PanelPixmap;
-
     Image* image;
 
     // For thesting themes

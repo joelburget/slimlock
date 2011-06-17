@@ -194,19 +194,19 @@ void Panel::WrongPassword(int timeout) {
     int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
     int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
 
-	// Clear the password field but draw everything else
-    ResetPasswd();
-    XClearWindow(Dpy, Win);
     OnExpose();
-    
-    SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
-                    message,
-                    &msgshadowcolor,
-                    shadowXOffset, shadowYOffset);
+    SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
+                    &msgshadowcolor, shadowXOffset, shadowYOffset);
     XBell(Dpy, 100);
     
     XFlush(Dpy);
     sleep(timeout);
+    ResetPasswd();
+    OnExpose();
+    // The message should stay on the screen even after the password field is
+    // cleared, methinks. I don't like this solution, but it works.
+    SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
+                    &msgshadowcolor, shadowXOffset, shadowYOffset);
     XSync(Dpy, True);
     XftDrawDestroy(draw);
 }

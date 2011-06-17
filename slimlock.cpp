@@ -189,7 +189,6 @@ int main(int argc, char **argv) {
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser())
         {            
-            loginPanel->ResetPasswd();
             loginPanel->WrongPassword(cfg_passwd_timeout);
             continue;
         }
