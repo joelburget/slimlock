@@ -158,7 +158,7 @@ string Cfg::trim( const string& s ) {
         ++pos;
     }
     line.erase( 0, pos );
-    pos = line.length()-1;
+    pos = line.length() - 1;
     while (pos > -1 && isspace(line[pos])) {
         --pos;
     }
@@ -169,7 +169,7 @@ string Cfg::trim( const string& s ) {
 }
 
 /* Return the welcome message with replaced vars */
-string Cfg::getWelcomeMessage(){
+string Cfg::getWelcomeMessage() {
     string s = getOption("welcome_msg");
     int n = -1;
     n = s.find("%host");

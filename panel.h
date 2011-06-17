@@ -114,7 +114,6 @@ private:
     Image* image;
 
     // For thesting themes
-    bool testing;
     std::string themedir;
 
 };

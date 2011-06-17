@@ -264,7 +264,7 @@ string findValidRandomTheme(const string& set)
     string name = set;
     struct stat buf;
 
-    if (name[name.length()-1] == ',') {
+    if (name[name.length() - 1] == ',') {
         name.erase(name.length() - 1);
     }
 

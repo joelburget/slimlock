@@ -18,6 +18,6 @@ namespace Util {
 	long random(void);
 
 	long makeseed(void);
-};
+}
 
 #endif /* __UTIL_H__ */

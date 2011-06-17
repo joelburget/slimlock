@@ -27,10 +27,10 @@ public:
 
     int Width() const  {
         return(width);
-    };
+    }
     int Height() const {
         return(height);
-    };
+    }
     Imlib_Image GetImage() {
         return(image);
     }
