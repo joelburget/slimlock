@@ -7,7 +7,7 @@ CC  = gcc
 CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config \
 	-I/usr/include $(shell imlib2-config --cflags)
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=$(shell imlib2-config --libs) -lXrandr -lXft -lX11 -lfontconfig -lrt -lpam 
+LDFLAGS=$(shell imlib2-config --libs) -lXft -lX11 -lfontconfig -lrt -lpam 
 CUSTOM=
 NAME=slimlock
 VERSION=0.8

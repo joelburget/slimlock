@@ -88,10 +88,6 @@ private:
     std::string PasswdBuffer;
     std::string HiddenPasswdBuffer;
 
-    // screen stuff
-    int screen1_width;
-    int screen1_height;
-
     // Configuration
     int input_name_x;
     int input_name_y;
