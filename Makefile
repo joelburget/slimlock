@@ -4,10 +4,10 @@
 CXX = g++
 CC  = gcc
 
-CFLAGS=-Wall -I. -I/usr/include/freetype2 -I/usr/include/freetype2/config \
-	-I/usr/include $(shell imlib2-config --cflags) -pthread
+PKGS=x11 xrandr xft fontconfig imlib2
+CFLAGS=-Wall -I. $(shell pkg-config --cflags $(PKGS)) -pthread
 CXXFLAGS=$(CFLAGS)
-LDFLAGS=$(shell imlib2-config --libs) -lXft -lX11 -lfontconfig -lrt -lpam -pthread
+LDFLAGS=$(shell pkg-config --libs $(PKGS)) -lrt -lpam -pthread
 CUSTOM=
 NAME=slimlock
 VERSION=0.8
