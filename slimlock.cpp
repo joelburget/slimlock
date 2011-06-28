@@ -16,6 +16,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/dpms.h>
 #include <security/pam_appl.h>
+#include <pthread.h>
 #include <err.h>
 #include <signal.h>
 
@@ -32,6 +33,7 @@ static int ConvCallback(int num_msg, const struct pam_message **msg,
                         struct pam_response **resp, void *appdata_ptr);
 string findValidRandomTheme(const string& set);
 void HandleSignal(int sig);
+void *RaiseWindow(void *data);
 
 // I really didn't wanna put these globals here, but it's the only way...
 Display* dpy;
@@ -78,8 +80,7 @@ int main(int argc, char **argv) {
         if(EWOULDBLOCK == errno)
             die("slimlock already running\n");
     }
-
-
+    
     unsigned int cfg_passwd_timeout;
     // Read user's current theme
     cfg = new Cfg;
@@ -138,6 +139,7 @@ int main(int argc, char **argv) {
       CWOverrideRedirect | CWBackPixel,
       &wa);
     XMapWindow(dpy, win);
+
     XFlush(dpy);
     for(int len = 1000; len; len--) {
         if(XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime)
@@ -181,6 +183,9 @@ int main(int argc, char **argv) {
     if (ret != PAM_SUCCESS)
         errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
     
+    pthread_t raise_thread;
+    pthread_create(&raise_thread, NULL, RaiseWindow, NULL);
+
     // Main loop
     while (true)
     {
@@ -302,4 +307,11 @@ void HandleSignal(int sig)
     delete loginPanel;
 
     die("Caught signal; dying\n");
+}
+
+void* RaiseWindow(void *data) {
+    while(1) {
+        XRaiseWindow(dpy, win);
+        sleep(1);
+    }
 }
