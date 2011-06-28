@@ -57,3 +57,6 @@ copyright (c) 2002-04 by Hari Nair
 
 Login.app is copyright (c) 1997, 1998 by Per Liden and is 
 licensed through the GNU General Public License. 
+
+Multi-monitor support adapted from xscreensaver, copyright (c) 1993-2006 Jamie 
+Zawinski <jwz@jwz.org>
