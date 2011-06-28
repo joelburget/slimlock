@@ -13,6 +13,7 @@
 #include "panel.h"
 
 #include <iostream>
+#include <X11/extensions/Xrandr.h>
 
 using namespace std;
 
@@ -26,6 +27,30 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     Scr = scr;
     Win = win;
     cfg = config;
+    
+    XRRScreenConfiguration *rrc;
+    XRRScreenSize *rrsizes;
+    Rotation rot = ~0;
+    SizeID size = -1;
+    int nsizes = 0;
+    
+    rrc = XRRGetScreenInfo(dpy, RootWindow(Dpy, Scr));
+    size = XRRConfigCurrentConfiguration (rrc, &rot);
+    rrsizes = XRRConfigSizes (rrc, &nsizes);
+    
+    if (nsizes <= 0) {  /* WTF?  Shouldn't happen but does. */
+      screen1_width  = DisplayWidth(Dpy, Scr);
+      screen1_height = DisplayHeight(Dpy, Scr);
+    } else if (rot & (RR_Rotate_90|RR_Rotate_270)) {
+      screen1_width  = rrsizes[size].height;
+      screen1_height = rrsizes[size].width;
+    } else {
+      screen1_width  = rrsizes[size].width;
+      screen1_height = rrsizes[size].height;
+    }
+
+    /* don't free 'rrsizes' */
+    XRRFreeScreenConfigInfo (rrc);
 
     // Init GC
     XGCValues gcv;
@@ -106,28 +131,28 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     }
 
     if (bgstyle == "stretch") {
-        bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
+        bg->Resize(screen1_width, screen1_height);
     } else if (bgstyle == "tile") {
-        bg->Tile(XWidthOfScreen(ScreenOfDisplay(dpy, scr)),
-                 XHeightOfScreen(ScreenOfDisplay(dpy, scr)));
+        bg->Tile(screen1_width,
+                 screen1_height);
     } else if (bgstyle == "center") {
         string hexvalue = cfg->getOption("background_color");
         hexvalue = hexvalue.substr(1,6);
-        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+        bg->Center(screen1_width,
+                   screen1_height,
                    hexvalue.c_str());
     } else { // plain color or error
         string hexvalue = cfg->getOption("background_color");
         hexvalue = hexvalue.substr(1,6);
-        bg->Center(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-                   XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)),
+        bg->Center(screen1_width,
+                   screen1_height,
                    hexvalue.c_str());
     }
-
+    
     string cfgX = cfg->getOption("input_panel_x");
     string cfgY = cfg->getOption("input_panel_y");
-    X = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), image->Width());
-    Y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), image->Height());
+    X = Cfg::absolutepos(cfgX, screen1_width, image->Width());
+    Y = Cfg::absolutepos(cfgY, screen1_height, image->Height());
 	
 	input_name_x += X, input_name_y += Y, input_pass_x += X, input_pass_y += Y;
 	
@@ -191,8 +216,8 @@ void Panel::WrongPassword(int timeout) {
     int shadowYOffset =
         Cfg::string2int(cfg->getOption("msg_shadow_yoffset").c_str());
 
-    int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
-    int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
+    int msg_x = Cfg::absolutepos(cfgX, screen1_width, extents.width);
+    int msg_y = Cfg::absolutepos(cfgY, screen1_height, extents.height);
 
     OnExpose();
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
@@ -225,8 +250,8 @@ void Panel::Message(const string& text) {
     int shadowYOffset =
         Cfg::string2int(cfg->getOption("msg_shadow_yoffset").c_str());
 
-    int msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.width);
-    int msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)), extents.height);
+    int msg_x = Cfg::absolutepos(cfgX, screen1_width, extents.width);
+    int msg_y = Cfg::absolutepos(cfgY, screen1_height, extents.height);
 
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
                     text,
