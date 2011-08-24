@@ -5,14 +5,14 @@ CXX = g++
 CC  = gcc
 
 PKGS=x11 xrandr xft fontconfig imlib2
-CFLAGS=-Wall -I. $(shell pkg-config --cflags $(PKGS)) -pthread
-CXXFLAGS=$(CFLAGS)
-LDFLAGS=$(shell pkg-config --libs $(PKGS)) -lrt -lpam -pthread
+MYCFLAGS=-Wall -I. $(shell pkg-config --cflags $(PKGS)) -pthread
+CXXFLAGS=$(CFLAGS) $(MYCFLAGS)
+LIBS=$(shell pkg-config --libs $(PKGS)) -lrt -lpam -pthread
 CUSTOM=
 NAME=slimlock
-VERSION=0.8
+VERSION=0.9.1
 CFGDIR=/etc
-MANDIR=/usr/man
+MANDIR=/usr/share/man
 DESTDIR=
 PREFIX=/usr
 DEFINES=-DPACKAGE=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
@@ -23,13 +23,13 @@ OBJECTS=cfg.o image.o panel.o slimlock.o util.o
 all: slimlock
 
 slimlock: $(OBJECTS)
-	$(CXX) $(LDFLAGS) $(OBJECTS) -o $(NAME)
+	$(CXX) $(LDFLAGS) $(OBJECTS) -o $(NAME) $(LIBS)
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(CUSTOM) -c $< -o $@
 
 .c.o:
-	$(CC) $(CFLAGS) $(DEFINES) $(CUSTOM) -c $< -o $@
+	$(CC) $(CFLAGS) $(MYCFLAGS) $(DEFINES) $(CUSTOM) -c $< -o $@
 
 clean:
 	@rm -f slimlock *.o
