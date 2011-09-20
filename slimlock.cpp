@@ -5,7 +5,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- */ 
+ */
 
 #include <cstdio>
 #include <cstring>
@@ -54,12 +54,12 @@ BOOL dpms_state, using_dpms;
 
 static void
 die(const char *errstr, ...) {
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
-	exit(EXIT_FAILURE);
+    va_start(ap, errstr);
+    vfprintf(stderr, errstr, ap);
+    va_end(ap);
+    exit(EXIT_FAILURE);
 }
 
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     }
 
     if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
-        perror("error locking console"); 
+        perror("error locking console");
     }
 
     void (*prev_fn)(int);
@@ -138,14 +138,14 @@ int main(int argc, char **argv) {
 
     // Create a full screen window
     Window root = RootWindow(dpy, scr);
-    win = XCreateWindow(dpy, 
-      root, 
-      0, 
-      0, 
-      DisplayWidth(dpy, scr), 
-      DisplayHeight(dpy, scr), 
-      0, 
-      DefaultDepth(dpy, scr), 
+    win = XCreateWindow(dpy,
+      root,
+      0,
+      0,
+      DisplayWidth(dpy, scr),
+      DisplayHeight(dpy, scr),
+      0,
+      DefaultDepth(dpy, scr),
       CopyFromParent,
       DefaultVisual(dpy, scr),
       CWOverrideRedirect | CWBackPixel,
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
         usleep(1000);
     }
     XSelectInput(dpy, win, ExposureMask | KeyPressMask);
-    
+
     // This hides the cursor if the user has that option enabled in their
     // configuration
     HideCursor();
@@ -175,10 +175,10 @@ int main(int argc, char **argv) {
     using_dpms = DPMSCapable(dpy) && (cfg_dpms_standby > 0);
     if (using_dpms) {
         DPMSGetTimeouts(dpy, &dpms_standby, &dpms_suspend, &dpms_off);
-        
+
         DPMSSetTimeouts(dpy, cfg_dpms_standby,
                         cfg_dpms_standby, cfg_dpms_off);
-    
+
         DPMSInfo(dpy, &dpms_level, &dpms_state);
         if (!dpms_state)
             DPMSEnable(dpy);
@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
     // If we can't start PAM, just exit because slimlock won't work right
     if (ret != PAM_SUCCESS)
         errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
-    
+
     pthread_t raise_thread;
     pthread_create(&raise_thread, NULL, RaiseWindow, NULL);
 
@@ -205,13 +205,13 @@ int main(int argc, char **argv) {
 
         // AuthenticateUser returns true if authenticated
         if (!AuthenticateUser())
-        {            
+        {
             loginPanel->WrongPassword(cfg_passwd_timeout);
             continue;
         }
         loginPanel->ClosePanel();
         delete loginPanel;
-        
+
         // Get DPMS stuff back to normal
         if (using_dpms) {
             DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
             if (!dpms_state)
                 DPMSDisable(dpy);
         }
-        
+
         XCloseDisplay(dpy);
         break;
     }
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void HideCursor() 
+void HideCursor()
 {
     if (cfg->getOption("hidecursor") == "true") {
         XColor black;
@@ -254,7 +254,7 @@ static int ConvCallback(int msgs, const struct pam_message **msg,
     if (msgs == 0 ||
         (*resp = (pam_response*) calloc(msgs, sizeof(struct pam_message))) == NULL)
         return 1;
-    
+
     for (int i = 0; i < msgs; i++) {
         if (msg[i]->msg_style != PAM_PROMPT_ECHO_OFF &&
             msg[i]->msg_style != PAM_PROMPT_ECHO_ON)
