@@ -11,6 +11,8 @@
 #include <cstring>
 #include <algorithm>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <linux/vt.h>
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -66,13 +68,23 @@ int main(int argc, char **argv) {
         die("slimlock-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
         die("usage: slimlock [-v]\n");
-        
+
+    int term;
+    /* disable tty switching */
+    if ((term = open("/dev/console", O_RDWR)) == -1) {
+        perror("error opening console");
+    }
+
+    if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
+        perror("error locking console"); 
+    }
+
     void (*prev_fn)(int);
 
     // restore DPMS settings should slimlock be killed in the line of duty
     prev_fn = signal(SIGTERM, HandleSignal);
     if (prev_fn == SIG_IGN) signal(SIGTERM, SIG_IGN);
-    
+
     // create a lock file to solve mutliple instances problem
     int lock_file = open("/var/lock/slimlock.lock", O_CREAT | O_RDWR, 0666);
     int rc = flock(lock_file, LOCK_EX | LOCK_NB);
@@ -80,7 +92,7 @@ int main(int argc, char **argv) {
         if(EWOULDBLOCK == errno)
             die("slimlock already running\n");
     }
-    
+
     unsigned int cfg_passwd_timeout;
     // Read user's current theme
     cfg = new Cfg;

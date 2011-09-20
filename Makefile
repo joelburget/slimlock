@@ -44,5 +44,6 @@ dist:
 install: slimlock
 	@install -D -m 644 slimlock.1 $(DESTDIR)$(MANDIR)/man1/slimlock.1
 	@install -D -m 755 slimlock $(DESTDIR)$(PREFIX)/bin/slimlock
+	@chmod u+s $(DESTDIR)$(PREFIX)/bin/slimlock
 	@install -D -m 644 slimlock.conf $(DESTDIR)$(CFGDIR)/slimlock.conf
 	@install -D -m 644 slimlock.pam $(DESTDIR)$(CFGDIR)/pam.d/slimlock
