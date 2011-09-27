@@ -51,6 +51,7 @@ struct pam_conv conv = {ConvCallback, NULL};
 
 CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
 BOOL dpms_state, using_dpms;
+int term;
 
 static void
 die(const char *errstr, ...) {
@@ -69,7 +70,6 @@ int main(int argc, char **argv) {
     else if(argc != 1)
         die("usage: slimlock [-v]\n");
 
-    int term;
     /* disable tty switching */
     if ((term = open("/dev/console", O_RDWR)) == -1) {
         perror("error opening console");
@@ -319,6 +319,11 @@ void HandleSignal(int sig)
         if (!dpms_state)
             DPMSDisable(dpy);
     }
+
+    if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
+        perror("error unlocking console");
+    }
+    close(term);
 
     loginPanel->ClosePanel();
     delete loginPanel;
