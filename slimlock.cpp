@@ -63,21 +63,11 @@ die(const char *errstr, ...) {
     exit(EXIT_FAILURE);
 }
 
-
 int main(int argc, char **argv) {
     if((argc == 2) && !strcmp("-v", argv[1]))
         die(APPNAME"-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
         die("usage: "APPNAME" [-v]\n");
-
-    /* disable tty switching */
-    if ((term = open("/dev/console", O_RDWR)) == -1) {
-        perror("error opening console");
-    }
-
-    if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
-        perror("error locking console");
-    }
 
     void (*prev_fn)(int);
 
@@ -168,6 +158,21 @@ int main(int argc, char **argv) {
     // Create panel
     loginPanel = new Panel(dpy, scr, win, cfg, themedir);
 
+    // Set up PAM
+    int ret = pam_start(APPNAME, loginPanel->GetName().c_str(), &conv, &pam_handle);
+    // If we can't start PAM, just exit because slimlock won't work right
+    if (ret != PAM_SUCCESS)
+        die("PAM: %s\n", pam_strerror(pam_handle, ret));
+
+    // disable tty switching
+    if ((term = open("/dev/console", O_RDWR)) == -1) {
+        perror("error opening console");
+    }
+
+    if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
+        perror("error locking console");
+    }
+
     // Set up DPMS
     unsigned int cfg_dpms_standby, cfg_dpms_off;
     cfg_dpms_standby = Cfg::string2int(cfg->getOption("dpms_standby_timeout").c_str());
@@ -188,12 +193,6 @@ int main(int argc, char **argv) {
     cfg_passwd_timeout = Cfg::string2int(cfg->getOption("wrong_passwd_timeout").c_str());
     // Let's just make sure it has a sane value
     cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
-
-    // Set up PAM
-    int ret = pam_start(APPNAME, loginPanel->GetName().c_str(), &conv, &pam_handle);
-    // If we can't start PAM, just exit because slimlock won't work right
-    if (ret != PAM_SUCCESS)
-        errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
 
     pthread_t raise_thread;
     pthread_create(&raise_thread, NULL, RaiseWindow, NULL);
