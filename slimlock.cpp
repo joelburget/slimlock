@@ -66,9 +66,9 @@ die(const char *errstr, ...) {
 
 int main(int argc, char **argv) {
     if((argc == 2) && !strcmp("-v", argv[1]))
-        die("slimlock-"VERSION", © 2010 Joel Burget\n");
+        die(APPNAME"-"VERSION", © 2010 Joel Burget\n");
     else if(argc != 1)
-        die("usage: slimlock [-v]\n");
+        die("usage: "APPNAME" [-v]\n");
 
     /* disable tty switching */
     if ((term = open("/dev/console", O_RDWR)) == -1) {
@@ -86,11 +86,11 @@ int main(int argc, char **argv) {
     if (prev_fn == SIG_IGN) signal(SIGTERM, SIG_IGN);
 
     // create a lock file to solve mutliple instances problem
-    int lock_file = open("/var/lock/slimlock.lock", O_CREAT | O_RDWR, 0666);
+    int lock_file = open("/var/lock/"APPNAME".lock", O_CREAT | O_RDWR, 0666);
     int rc = flock(lock_file, LOCK_EX | LOCK_NB);
     if(rc) {
         if(EWOULDBLOCK == errno)
-            die("slimlock already running\n");
+            die(APPNAME" already running\n");
     }
 
     unsigned int cfg_passwd_timeout;
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     }
 
     if(!(dpy = XOpenDisplay(DISPLAY)))
-        die("slimlock: cannot open display\n");
+        die(APPNAME": cannot open display\n");
     scr = DefaultScreen(dpy);
 
     XSetWindowAttributes wa;
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
     cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
 
     // Set up PAM
-    int ret = pam_start("slimlock", loginPanel->GetName().c_str(), &conv, &pam_handle);
+    int ret = pam_start(APPNAME, loginPanel->GetName().c_str(), &conv, &pam_handle);
     // If we can't start PAM, just exit because slimlock won't work right
     if (ret != PAM_SUCCESS)
         errx(EXIT_FAILURE, "PAM: %s\n", pam_strerror(pam_handle, ret));
