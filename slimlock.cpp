@@ -224,6 +224,11 @@ int main(int argc, char **argv) {
         break;
     }
 
+    if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
+        perror("error unlocking console");
+    }
+    close(term);
+
     return 0;
 }
 
