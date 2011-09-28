@@ -1,5 +1,5 @@
 # slimlock makefile
-# © 2010 Joel Burget
+# © 2010, 2011 Joel Burget
 
 CXX = g++
 CC  = gcc
@@ -10,7 +10,7 @@ CXXFLAGS=$(CFLAGS) $(MYCFLAGS)
 LIBS=$(shell pkg-config --libs $(PKGS)) -lrt -lpam -pthread
 CUSTOM=
 NAME=slimlock
-VERSION=0.10
+VERSION=0.10.1
 CFGDIR=/etc
 MANDIR=/usr/share/man
 DESTDIR=
