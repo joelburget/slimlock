@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
         die("PAM: %s\n", pam_strerror(pam_handle, ret));
 
     // disable tty switching
-    if(cfg->getOption("tty_lock") == "true") {
+    if(cfg->getOption("tty_lock") == "1") {
         if ((term = open("/dev/console", O_RDWR)) == -1) {
             perror("error opening console");
         }   
@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
         break;
     }
 
-    if(cfg->getOption("tty_lock") == "true") {
+    if(cfg->getOption("tty_lock") == "1") {
         if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
             perror("error unlocking console");
         }
