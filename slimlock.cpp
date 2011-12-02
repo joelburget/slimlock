@@ -165,12 +165,14 @@ int main(int argc, char **argv) {
         die("PAM: %s\n", pam_strerror(pam_handle, ret));
 
     // disable tty switching
-    if ((term = open("/dev/console", O_RDWR)) == -1) {
-        perror("error opening console");
-    }
+    if(cfg->getOption("tty_lock") == "true") {
+        if ((term = open("/dev/console", O_RDWR)) == -1) {
+            perror("error opening console");
+        }   
 
-    if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
-        perror("error locking console");
+        if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
+            perror("error locking console");
+        }
     }
 
     // Set up DPMS
@@ -223,8 +225,10 @@ int main(int argc, char **argv) {
         break;
     }
 
-    if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
-        perror("error unlocking console");
+    if(cfg->getOption("tty_lock") == "true") {
+        if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
+            perror("error unlocking console");
+        }
     }
     close(term);
 

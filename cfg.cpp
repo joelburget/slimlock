@@ -31,6 +31,7 @@ Cfg::Cfg()
     options.insert(option("welcome_msg", "Welcome to %host"));
     options.insert(option("current_theme", "default"));
     options.insert(option("hidecursor", "false"));
+    options.insert(option("tty_lock", "true"));
 
     // Theme stuff
     options.insert(option("input_panel_x", "50%"));
