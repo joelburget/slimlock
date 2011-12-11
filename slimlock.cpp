@@ -327,7 +327,7 @@ void HandleSignal(int sig)
     loginPanel->ClosePanel();
     delete loginPanel;
 
-    die("Caught signal; dying\n");
+    die(APPNAME": Caught signal; dying\n");
 }
 
 void* RaiseWindow(void *data) {
