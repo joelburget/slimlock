@@ -65,7 +65,7 @@ die(const char *errstr, ...) {
 
 int main(int argc, char **argv) {
     if((argc == 2) && !strcmp("-v", argv[1]))
-        die(APPNAME"-"VERSION", © 2010 Joel Burget\n");
+        die(APPNAME"-"VERSION", © 2010-2012 Joel Burget\n");
     else if(argc != 1)
         die("usage: "APPNAME" [-v]\n");
 
@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
     if(cfg->getOption("tty_lock") == "1") {
         if ((term = open("/dev/console", O_RDWR)) == -1) {
             perror("error opening console");
-        }   
+        }
 
         if ((ioctl(term, VT_LOCKSWITCH)) == -1) {
             perror("error locking console");
