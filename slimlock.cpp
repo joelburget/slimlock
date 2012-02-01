@@ -118,7 +118,11 @@ int main(int argc, char **argv) {
         }
     }
 
-    if(!(dpy = XOpenDisplay(DISPLAY)))
+    const char *display = getenv("DISPLAY");
+    if (!display){
+        display = DISPLAY;
+    }
+    if(!(dpy = XOpenDisplay(display)))
         die(APPNAME": cannot open display\n");
     scr = DefaultScreen(dpy);
 
