@@ -215,6 +215,9 @@ int main(int argc, char **argv) {
         loginPanel->WrongPassword(cfg_passwd_timeout);
     }
     
+    // kill thread before destroying the window that it's supposed to be raising
+    pthread_cancel(raise_thread);
+    
     loginPanel->ClosePanel();
     delete loginPanel;
 
