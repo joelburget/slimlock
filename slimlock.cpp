@@ -209,25 +209,24 @@ int main(int argc, char **argv) {
         loginPanel->ResetPasswd();
 
         // AuthenticateUser returns true if authenticated
-        if (!AuthenticateUser())
-        {
-            loginPanel->WrongPassword(cfg_passwd_timeout);
-            continue;
-        }
-        loginPanel->ClosePanel();
-        delete loginPanel;
-
-        // Get DPMS stuff back to normal
-        if (using_dpms) {
-            DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
-            // turn off DPMS if it was off when we entered
-            if (!dpms_state)
-                DPMSDisable(dpy);
-        }
-
-        XCloseDisplay(dpy);
-        break;
+        if (AuthenticateUser())
+            break;
+        
+        loginPanel->WrongPassword(cfg_passwd_timeout);
     }
+    
+    loginPanel->ClosePanel();
+    delete loginPanel;
+
+    // Get DPMS stuff back to normal
+    if (using_dpms) {
+        DPMSSetTimeouts(dpy, dpms_standby, dpms_suspend, dpms_off);
+        // turn off DPMS if it was off when we entered
+        if (!dpms_state)
+            DPMSDisable(dpy);
+    }
+
+    XCloseDisplay(dpy);
 
     if(cfg->getOption("tty_lock") == "1") {
         if ((ioctl(term, VT_UNLOCKSWITCH)) == -1) {
