@@ -31,7 +31,7 @@ using namespace std;
 void setBackground(const string& themedir);
 void HideCursor();
 bool AuthenticateUser();
-static int ConvCallback(int num_msg, const struct pam_message **msg,
+static int ConvCallback(int num_msgs, const struct pam_message **msg,
                         struct pam_response **resp, void *appdata_ptr);
 string findValidRandomTheme(const string& set);
 void HandleSignal(int sig);
@@ -260,29 +260,31 @@ void HideCursor()
     }
 }
 
-static int ConvCallback(int msgs, const struct pam_message **msg,
+static int ConvCallback(int num_msgs, const struct pam_message **msg,
                         struct pam_response **resp, void *appdata_ptr)
 {
     loginPanel->EventHandler();
 
     // PAM expects an array of responses, one for each message
-    if (msgs == 0 ||
-        (*resp = (pam_response*) calloc(msgs, sizeof(struct pam_message))) == NULL)
-        return 1;
+    if (num_msgs == 0 ||
+        (*resp = (pam_response*) calloc(num_msgs, sizeof(struct pam_message))) == NULL)
+        return PAM_BUF_ERR;
 
-    for (int i = 0; i < msgs; i++) {
+    for (int i = 0; i < num_msgs; i++) {
         if (msg[i]->msg_style != PAM_PROMPT_ECHO_OFF &&
             msg[i]->msg_style != PAM_PROMPT_ECHO_ON)
             continue;
 
         // return code is currently not used but should be set to zero
         resp[i]->resp_retcode = 0;
-        if ((resp[i]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL)
-            return 1;
+        if ((resp[i]->resp = strdup(loginPanel->GetPasswd().c_str())) == NULL) {
+            free(*resp);
+            return PAM_BUF_ERR;
+        }
     }
 
 
-    return 0;
+    return PAM_SUCCESS;
 }
 
 bool AuthenticateUser()
