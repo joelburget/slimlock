@@ -109,7 +109,6 @@ void Image::Crop(const int x, const int y, const int w, const int h) {
  * Fills the remaining space (if any) with the hex color
  */
 void Image::Center(const int w, const int h, const char *hex) {
-    
     Imlib_Image bg = imlib_create_image(w, h);
     int pos_x, pos_y;
     unsigned long packed_rgb;

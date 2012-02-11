@@ -249,12 +249,13 @@ void HideCursor()
         Pixmap cursorpixmap;
         Cursor cursor;
         cursordata[0] = 0;
-        cursorpixmap=XCreateBitmapFromData(dpy, win, cursordata, 1, 1);
+        cursorpixmap = XCreateBitmapFromData(dpy, win, cursordata, 1, 1);
         black.red = 0;
         black.green = 0;
         black.blue = 0;
         cursor = XCreatePixmapCursor(dpy, cursorpixmap, cursorpixmap,
                                      &black, &black, 0, 0);
+        XFreePixmap(dpy, cursorpixmap);
         XDefineCursor(dpy, win, cursor);
     }
 }

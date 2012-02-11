@@ -160,6 +160,7 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     image->Merge(bg, X, Y);
     Pixmap p = image->createPixmap(Dpy, Scr, Win);
     XSetWindowBackgroundPixmap(Dpy, Win, p);
+    XFreePixmap(Dpy, p);
     XClearWindow(Dpy, Win);
     
     delete bg;
