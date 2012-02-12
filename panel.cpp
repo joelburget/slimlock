@@ -397,8 +397,8 @@ bool Panel::OnKeyPress(XEvent& event) {
             if (isprint(ascii) && (keysym < XK_Shift_L || keysym > XK_Hyper_R)) {
                 formerString=HiddenPasswdBuffer;
                 if (PasswdBuffer.length() < INPUT_MAXLENGTH_PASSWD - 1) {
-                    PasswdBuffer.append(&ascii,1);
-                    HiddenPasswdBuffer.append("*");
+                    PasswdBuffer.push_back(ascii);
+                    HiddenPasswdBuffer.push_back('*');
                 }
             } else {
                 fieldTextChanged = false;
