@@ -60,12 +60,19 @@ void Image::Merge(Image* background, const int x, const int y) {
     if (x + width > background->Width()|| y + height > background->Height()) {
         return;
     }
-
-    imlib_context_set_image(background->GetImage());
-    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
-    image = imlib_clone_image();
     
+    Imlib_Image bg_image, new_image;
+    bg_image = background->GetImage();
+    imlib_context_set_image(bg_image);
+    new_image = imlib_clone_image();
+    
+    imlib_context_set_image(new_image);
+    imlib_blend_image_onto_image(image, 0, 0, 0, width, height, x, y, width, height);
+    
+    imlib_context_set_image(image);
     imlib_free_image();
+    
+    image = new_image;
 }
 
 /* Tile the image growing its size to the minimum entire
@@ -73,24 +80,28 @@ void Image::Merge(Image* background, const int x, const int y) {
  * The new dimensions should be > of the current ones.
  */
 void Image::Tile(const int w, const int h) {
-    Imlib_Image tmp = imlib_create_image(w, h);
     int tiles_x, tiles_y;
+    
+    width = w;
+    height = h;
+    
+    Imlib_Image new_image = imlib_create_image(w, h);
+    
+    imlib_context_set_image(new_image);
     
     tiles_x = w / width;
     tiles_y = h / height;
-    imlib_context_set_image(tmp);
     for(int i=0; i <= tiles_x; i++) {
         for(int j=0; j <= tiles_y; j++) {
             imlib_blend_image_onto_image(image, 0, 0, 0, width, height,
                                          i * width, j * height, width, height);
         }
     }
-
-    image = imlib_clone_image();
-    width = w;
-    height = h;
-
+    
+    imlib_context_set_image(image);
     imlib_free_image();
+    
+    image = new_image;
 }
 
 /* Crop the image
@@ -109,10 +120,11 @@ void Image::Crop(const int x, const int y, const int w, const int h) {
  * Fills the remaining space (if any) with the hex color
  */
 void Image::Center(const int w, const int h, const char *hex) {
-    Imlib_Image bg = imlib_create_image(w, h);
     int pos_x, pos_y;
     unsigned long packed_rgb;
-    sscanf(hex, "%lx", &packed_rgb);  
+    Imlib_Image bg = imlib_create_image(w, h);
+    
+    sscanf(hex, "%lx", &packed_rgb);
 
     unsigned long r = packed_rgb >> 16;
     unsigned long g = packed_rgb >> 8 & 0xff;
@@ -121,16 +133,17 @@ void Image::Center(const int w, const int h, const char *hex) {
     imlib_context_set_image(bg);
     imlib_context_set_color(r, g, b, 255);
     imlib_image_fill_rectangle(0, 0, w, h);
+    
     pos_x = (w - width) / 2;
     pos_y = (h - height) / 2;
     
     imlib_blend_image_onto_image(image, 0, 0, 0, width, height, pos_x, pos_y,
                                  width, height);
 
-    image = imlib_clone_image();
+    imlib_context_set_image(image);
     imlib_free_image();
     
-    
+    image = bg;
 }
 
 Pixmap
@@ -149,8 +162,6 @@ Image::createPixmap(Display* dpy, int scr, Window win) {
     imlib_context_set_drawable(tmp);
     imlib_render_image_on_drawable(0, 0);
     
-    imlib_free_image();
-    
-    return(tmp);
+    return tmp;
 }
 
