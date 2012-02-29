@@ -21,23 +21,23 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
              const string& themedir) {
 	// Get user
 	const char *user = getenv("USER");
-	
+
     // Set display
     Dpy = dpy;
     Scr = scr;
     Win = win;
     cfg = config;
-    
+
     XRRScreenConfiguration *rrc;
     XRRScreenSize *rrsizes;
     Rotation rot = ~0;
     SizeID size = -1;
     int nsizes = 0;
-    
+
     rrc = XRRGetScreenInfo(dpy, RootWindow(Dpy, Scr));
     size = XRRConfigCurrentConfiguration (rrc, &rot);
     rrsizes = XRRConfigSizes (rrc, &nsizes);
-    
+
     if (nsizes <= 0) {  /* WTF?  Shouldn't happen but does. */
       screen1_width  = DisplayWidth(Dpy, Scr);
       screen1_height = DisplayHeight(Dpy, Scr);
@@ -148,34 +148,34 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
                    screen1_height,
                    hexvalue.c_str());
     }
-    
+
     string cfgX = cfg->getOption("input_panel_x");
     string cfgY = cfg->getOption("input_panel_y");
     X = Cfg::absolutepos(cfgX, screen1_width, image->Width());
     Y = Cfg::absolutepos(cfgY, screen1_height, image->Height());
-	
-	input_name_x += X, input_name_y += Y, input_pass_x += X, input_pass_y += Y;
-	
+
+    input_name_x += X, input_name_y += Y, input_pass_x += X, input_pass_y += Y;
+
     // Merge image into background
     image->Merge(bg, X, Y);
     Pixmap p = image->createPixmap(Dpy, Scr, Win);
     XSetWindowBackgroundPixmap(Dpy, Win, p);
     XFreePixmap(Dpy, p);
     XClearWindow(Dpy, Win);
-    
+
     delete bg;
 
     // Read (and substitute vars in) the welcome message
     int show_welcome_msg = Cfg::string2int(cfg->getOption("show_welcome_msg").c_str());
     if (show_welcome_msg)
-		welcome_message = cfg->getWelcomeMessage();
-	else
-		welcome_message = "";
-	
+        welcome_message = cfg->getWelcomeMessage();
+    else
+        welcome_message = "";
+
     intro_message = cfg->getOption("intro_msg");
-    
+
     SetName(user);
-    
+
     // Draw the panel for the first time
     OnExpose();
 }
@@ -229,7 +229,7 @@ void Panel::WrongPassword(int timeout) {
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
                     &msgshadowcolor, shadowXOffset, shadowYOffset);
     XBell(Dpy, 100);
-    
+
     XFlush(Dpy);
     sleep(timeout);
     ResetPasswd();
@@ -286,7 +286,7 @@ void Panel::Cursor(int visible) {
     const char* text;
     int xx, yy, y2, cheight;
     const char* txth = "Wj"; // used to get cursor height
-	
+
 	text = HiddenPasswdBuffer.c_str();
 	xx = input_pass_x;
 	yy = input_pass_y;
@@ -362,7 +362,7 @@ bool Panel::OnKeyPress(XEvent& event) {
     XComposeStatus compstatus;
     string formerString = "";
     bool fieldTextChanged = true;
-    
+
     XLookupString(&event.xkey, &ascii, 1, &keysym, &compstatus);
 
     Cursor(HIDE);
@@ -397,7 +397,7 @@ bool Panel::OnKeyPress(XEvent& event) {
                 PasswdBuffer.clear();
             }
             // Deliberate fall-through
-        
+
         default:
             if (isprint(ascii) && (keysym < XK_Shift_L || keysym > XK_Hyper_R)) {
                 formerString=HiddenPasswdBuffer;
@@ -488,7 +488,7 @@ void Panel::ShowText() {
 		SlimDrawString8 (draw, &entercolor, enterfont, password_x, password_y,
 						 msg, &entershadowcolor, shadowXOffset, shadowYOffset);
 	}
-	
+
     if (!singleInputMode) {
         msg = cfg->getOption("username_msg");
         XftTextExtents8(Dpy, enterfont, (XftChar8*)msg.c_str(),
@@ -507,7 +507,7 @@ void Panel::ShowText() {
         }
     }
     XftDrawDestroy(draw);
-    
+
     // If only the password box is visible, draw the user name somewhere too
     user_msg += GetName();
     int show_username = Cfg::string2int(cfg->getOption("show_username").c_str());
