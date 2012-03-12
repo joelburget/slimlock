@@ -1,0 +1,6 @@
+before_script: "sudo aptitude -y -q libx11-dev libxrandr-dev libxft-dev libfontconfig1-dev libimlib2-dev libxext-dev"
+script: "make"
+notifications:
+  email:
+    on_success: change
+    on_failure: always
