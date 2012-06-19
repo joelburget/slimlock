@@ -28,29 +28,7 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     Win = win;
     cfg = config;
 
-    XRRScreenConfiguration *rrc;
-    XRRScreenSize *rrsizes;
-    Rotation rot = ~0;
-    SizeID size = -1;
-    int nsizes = 0;
-
-    rrc = XRRGetScreenInfo(dpy, RootWindow(Dpy, Scr));
-    size = XRRConfigCurrentConfiguration (rrc, &rot);
-    rrsizes = XRRConfigSizes (rrc, &nsizes);
-
-    if (nsizes <= 0) {  /* WTF?  Shouldn't happen but does. */
-      screen1_width  = DisplayWidth(Dpy, Scr);
-      screen1_height = DisplayHeight(Dpy, Scr);
-    } else if (rot & (RR_Rotate_90|RR_Rotate_270)) {
-      screen1_width  = rrsizes[size].height;
-      screen1_height = rrsizes[size].width;
-    } else {
-      screen1_width  = rrsizes[size].width;
-      screen1_height = rrsizes[size].height;
-    }
-
-    /* don't free 'rrsizes' */
-    XRRFreeScreenConfigInfo (rrc);
+    viewport = GetPrimaryViewport();
 
     // Init GC
     XGCValues gcv;
@@ -60,6 +38,15 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     gcv.background = GetColor("white");
     gcv.graphics_exposures = False;
     TextGC = XCreateGC(Dpy, Win, gcm, &gcv);
+
+    gcm = GCGraphicsExposures;
+    gcv.graphics_exposures = False;
+    WinGC = XCreateGC(Dpy, Win, gcm, &gcv);
+    if (WinGC < 0) {
+        cerr << APPNAME
+             << ": failed to create pixmap\n.";
+        exit(ERR_EXIT);
+    }
 
     font = XftFontOpenName(Dpy, Scr, cfg->getOption("input_font").c_str());
     welcomefont = XftFontOpenName(Dpy, Scr, cfg->getOption("welcome_font").c_str());
@@ -131,39 +118,36 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     }
 
     if (bgstyle == "stretch") {
-        bg->Resize(screen1_width, screen1_height);
+        bg->Resize(viewport.width, viewport.height);
     } else if (bgstyle == "tile") {
-        bg->Tile(screen1_width,
-                 screen1_height);
+        bg->Tile(viewport.width,
+                 viewport.height);
     } else if (bgstyle == "center") {
         string hexvalue = cfg->getOption("background_color");
         hexvalue = hexvalue.substr(1,6);
-        bg->Center(screen1_width,
-                   screen1_height,
+        bg->Center(viewport.width,
+                   viewport.height,
                    hexvalue.c_str());
     } else { // plain color or error
         string hexvalue = cfg->getOption("background_color");
         hexvalue = hexvalue.substr(1,6);
-        bg->Center(screen1_width,
-                   screen1_height,
+        bg->Center(viewport.width,
+                   viewport.height,
                    hexvalue.c_str());
     }
 
     string cfgX = cfg->getOption("input_panel_x");
     string cfgY = cfg->getOption("input_panel_y");
-    X = Cfg::absolutepos(cfgX, screen1_width, image->Width());
-    Y = Cfg::absolutepos(cfgY, screen1_height, image->Height());
+    X = Cfg::absolutepos(cfgX, viewport.width, image->Width());
+    Y = Cfg::absolutepos(cfgY, viewport.height, image->Height());
 
     input_name_x += X, input_name_y += Y, input_pass_x += X, input_pass_y += Y;
 
     // Merge image into background
     image->Merge(bg, X, Y);
-    Pixmap p = image->createPixmap(Dpy, Scr, Win);
-    XSetWindowBackgroundPixmap(Dpy, Win, p);
-    XFreePixmap(Dpy, p);
-    XClearWindow(Dpy, Win);
-
+    background = image->createPixmap(Dpy, Scr, Win);
     delete bg;
+    delete image;
 
     // Read (and substitute vars in) the welcome message
     int show_welcome_msg = Cfg::string2int(cfg->getOption("show_welcome_msg").c_str());
@@ -196,8 +180,9 @@ Panel::~Panel() {
     XftFontClose(Dpy, introfont);
     XftFontClose(Dpy, welcomefont);
     XftFontClose(Dpy, enterfont);
-    delete image;
 
+    XFreeGC(Dpy, WinGC);
+    XFreePixmap(Dpy, background);
 }
 
 void Panel::ClosePanel() {
@@ -222,8 +207,8 @@ void Panel::WrongPassword(int timeout) {
     int shadowYOffset =
         Cfg::string2int(cfg->getOption("msg_shadow_yoffset").c_str());
 
-    int msg_x = Cfg::absolutepos(cfgX, screen1_width, extents.width);
-    int msg_y = Cfg::absolutepos(cfgY, screen1_height, extents.height);
+    int msg_x = Cfg::absolutepos(cfgX, viewport.width, extents.width);
+    int msg_y = Cfg::absolutepos(cfgY, viewport.height, extents.height);
 
     OnExpose();
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
@@ -256,8 +241,8 @@ void Panel::Message(const string& text) {
     int shadowYOffset =
         Cfg::string2int(cfg->getOption("msg_shadow_yoffset").c_str());
 
-    int msg_x = Cfg::absolutepos(cfgX, screen1_width, extents.width);
-    int msg_y = Cfg::absolutepos(cfgY, screen1_height, extents.height);
+    int msg_x = Cfg::absolutepos(cfgX, viewport.width, extents.width);
+    int msg_y = Cfg::absolutepos(cfgY, viewport.height, extents.height);
 
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y,
                     text,
@@ -287,9 +272,9 @@ void Panel::Cursor(int visible) {
     int xx, yy, y2, cheight;
     const char* txth = "Wj"; // used to get cursor height
 
-	text = HiddenPasswdBuffer.c_str();
-	xx = input_pass_x;
-	yy = input_pass_y;
+    text = HiddenPasswdBuffer.c_str();
+    xx = input_pass_x;
+    yy = input_pass_y;
 
     XGlyphInfo extents;
     XftTextExtents8(Dpy, font, (XftChar8*)txth, strlen(txth), &extents);
@@ -299,14 +284,17 @@ void Panel::Cursor(int visible) {
     xx += extents.width;
 
     if(visible == SHOW) {
+        xx += viewport.x;
+        yy += viewport.y;
+        y2 += viewport.y;
+
         XSetForeground(Dpy, TextGC,
                        GetColor(cfg->getOption("input_color").c_str()));
         XDrawLine(Dpy, Win, TextGC,
                   xx+1, yy-cheight,
                   xx+1, y2);
     } else {
-        XClearArea(Dpy, Win, xx+1, yy-cheight,
-                   1, y2-(yy-cheight)+1, false);
+        ApplyBackground(Rectangle(xx+1, yy-cheight, 1, y2-(yy-cheight)+1));
     }
 }
 
@@ -333,7 +321,7 @@ void Panel::EventHandler() {
 void Panel::OnExpose(void) {
     XftDraw *draw = XftDrawCreate(Dpy, Win,
                         DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
-    XClearWindow(Dpy, Win);
+    ApplyBackground();
     if (input_pass_x != input_name_x || input_pass_y != input_name_y) {
         SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y,
                         NameBuffer,
@@ -425,8 +413,8 @@ bool Panel::OnKeyPress(XEvent& event) {
                         formerString.length(), &extents);
         int maxLength = extents.width;
 
-        XClearArea(Dpy, Win, input_pass_x - 3, input_pass_y - maxHeight - 3,
-                   maxLength + 6, maxHeight + 6, false);
+        ApplyBackground(Rectangle(input_pass_x - 3, input_pass_y - maxHeight - 3,
+                                  maxLength + 6, maxHeight + 6));
     }
 
     if (fieldTextChanged) {
@@ -521,10 +509,10 @@ void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font,
                             int xOffset, int yOffset)
 {
     if (xOffset && yOffset) {
-        XftDrawString8(d, shadowColor, font, x+xOffset, y+yOffset,
+        XftDrawString8(d, shadowColor, font, x+xOffset+viewport.x, y+yOffset+viewport.y,
                        reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
     }
-    XftDrawString8(d, color, font, x, y, reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
+    XftDrawString8(d, color, font, x+viewport.x, y+viewport.y, reinterpret_cast<const FcChar8*>(str.c_str()), str.length());
 }
 
 void Panel::ResetPasswd(void) {
@@ -541,4 +529,72 @@ const string& Panel::GetName(void) const {
 }
 const string& Panel::GetPasswd(void) const {
     return PasswdBuffer;
+}
+
+Rectangle Panel::GetPrimaryViewport() {
+    Rectangle fallback;
+    Rectangle result;
+
+    RROutput primary;
+    XRROutputInfo *primary_info;
+    XRRScreenResources *resources;
+    XRRCrtcInfo *crtc_info;
+
+    fallback.x = 0;
+    fallback.y = 0;
+    fallback.width = DisplayWidth(Dpy, Scr);
+    fallback.height = DisplayHeight(Dpy, Scr);
+
+    primary = XRRGetOutputPrimary(Dpy, Win);
+    if (!primary) {
+        return fallback;
+    }
+
+    resources = XRRGetScreenResources(Dpy, Win);
+    if (!resources) {
+        return fallback;
+    }
+
+    primary_info = XRRGetOutputInfo(Dpy, resources, primary);
+    if (!primary_info) {
+        XRRFreeScreenResources(resources);
+        return fallback;
+    }
+
+    crtc_info = XRRGetCrtcInfo(Dpy, resources, primary_info->crtc);
+    if (!crtc_info) {
+        XRRFreeOutputInfo(primary_info);
+        XRRFreeScreenResources(resources);
+        return fallback;
+    }
+
+    result.x = crtc_info->x;
+    result.y = crtc_info->y;
+    result.width = crtc_info->width;
+    result.height = crtc_info->height;
+
+    XRRFreeCrtcInfo(crtc_info);
+    XRRFreeOutputInfo(primary_info);
+    XRRFreeScreenResources(resources);
+
+    return result;
+}
+
+void Panel::ApplyBackground(Rectangle rect) {
+    int ret;
+
+    if (rect.is_empty()) {
+        rect.x = 0;
+        rect.y = 0;
+        rect.width = viewport.width;
+        rect.height = viewport.height;
+    }
+
+    ret = XCopyArea(Dpy, background, Win, WinGC,
+                    rect.x, rect.y, rect.width, rect.height,
+                    viewport.x + rect.x, viewport.y + rect.y);
+
+    if (!ret) {
+        cerr << APPNAME << ": failed to put pixmap on the screen\n.";
+    }
 }
