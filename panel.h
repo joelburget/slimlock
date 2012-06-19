@@ -32,6 +32,19 @@
 #include "const.h"
 #include "image.h"
 
+struct Rectangle {
+  int x;
+  int y;
+  unsigned int width;
+  unsigned int height;
+
+  Rectangle() : x(0), y(0), width(0), height(0) {};
+  Rectangle(int x, int y, unsigned int width, unsigned int height) :
+      x(x), y(y), width(width), height(height) {};
+  bool is_empty() const {
+    return width == 0 || height == 0;
+  }
+};
 
 class Panel {
 public:
@@ -60,10 +73,14 @@ private:
                             XftColor* shadowColor,
                             int xOffset, int yOffset);
 
+    Rectangle GetPrimaryViewport();
+    void ApplyBackground(Rectangle = Rectangle());
+
     Cfg* cfg;
 
     // Private data
     Window Win;
+    GC WinGC;
     Display* Dpy;
     int Scr;
     int X, Y;
@@ -82,15 +99,15 @@ private:
     XftFont* enterfont;
     XftColor entercolor;
     XftColor entershadowcolor;
-    
+    Pixmap   background;
+
     // Username/Password
     std::string NameBuffer;
     std::string PasswdBuffer;
     std::string HiddenPasswdBuffer;
 
     // screen stuff
-    int screen1_width;
-    int screen1_height;
+    Rectangle viewport;
 
     // Configuration
     int input_name_x;
