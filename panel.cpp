@@ -595,6 +595,6 @@ void Panel::ApplyBackground(Rectangle rect) {
                     viewport.x + rect.x, viewport.y + rect.y);
 
     if (!ret) {
-        cerr << APPNAME << "Failed to put pixmap on the screen\n.";
+        cerr << APPNAME << ": failed to put pixmap on the screen\n.";
     }
 }
