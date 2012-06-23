@@ -40,6 +40,9 @@ are:
 -	`show_welcome_msg`: whether or not to display SLiM's welcome message. 1 to
 	show, 0 to disable.
 	-	Default: 0
+-	`tty_lock`: whether or not to allow virtual terminals switching. 1 to
+	disallow, 0 to allow.
+	-	Default: 1
 
 Copyright
 ---------
