@@ -43,6 +43,9 @@ are:
 -	`tty_lock`: whether or not to allow virtual terminals switching. 1 to
 	disallow, 0 to allow.
 	-	Default: 1
+-	`bell`: whether to ring the bell on authentication failure. 1 to
+	enable, 0 to disable.
+	-	Default: 1
 
 Copyright
 ---------
