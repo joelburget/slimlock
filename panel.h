@@ -77,6 +77,7 @@ private:
     void ApplyBackground(Rectangle = Rectangle());
 
     Cfg* cfg;
+    bool CapsLockOn;
 
     // Private data
     Window Win;
