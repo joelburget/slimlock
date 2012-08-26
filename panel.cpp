@@ -13,6 +13,7 @@
 #include "panel.h"
 
 #include <iostream>
+#include <unistd.h>
 #include <X11/extensions/Xrandr.h>
 
 using namespace std;

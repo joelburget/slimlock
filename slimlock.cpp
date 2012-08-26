@@ -21,6 +21,7 @@
 #include <pthread.h>
 #include <err.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "cfg.h"
 #include "util.h"
