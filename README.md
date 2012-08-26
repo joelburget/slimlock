@@ -34,6 +34,9 @@ are:
 -	`passwd_feedback_msg`: message to display after a failed authentication
 	attempt.
 	-	Default: "Authentication failed"
+-	`passwd_feedback_capslock`: message to display after a failed authentication
+	attempt if the CapsLock is on.
+	-	Default: "Authentication failed (CapsLock is on)"
 -	`show_username`: whether or not to display the username on themes with only a
 	single input box. 1 to show, 0 to disable.
 	-	Default: 1
@@ -58,5 +61,7 @@ copyright (c) 2002-04 by Hari Nair
 Login.app is copyright (c) 1997, 1998 by Per Liden and is 
 licensed through the GNU General Public License. 
 
-Multi-monitor support adapted from xscreensaver, copyright (c) 1993-2006 Jamie 
+Multi-monitor support adapted from xscreensaver, copyright (c) 1993-2006 by Jamie 
 Zawinski <jwz@jwz.org>
+
+CapsLock handling adapted from xlockmore, copyright (c) 1998-1991 by Patrick J. Naughton

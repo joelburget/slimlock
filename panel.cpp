@@ -27,6 +27,7 @@ Panel::Panel(Display* dpy, int scr, Window win, Cfg* config,
     Scr = scr;
     Win = win;
     cfg = config;
+    CapsLockOn = false;
 
     viewport = GetPrimaryViewport();
 
@@ -193,9 +194,13 @@ void Panel::ClosePanel() {
 }
 
 void Panel::WrongPassword(int timeout) {
-    string message = cfg->getOption("passwd_feedback_msg");
+    string message;
     string cfgX, cfgY;
     XGlyphInfo extents;
+    if (CapsLockOn)
+        message = cfg->getOption("passwd_feedback_capslock");
+    else
+        message = cfg->getOption("passwd_feedback_msg");
     XftDraw *draw = XftDrawCreate(Dpy, Win,
                                   DefaultVisual(Dpy, Scr), DefaultColormap(Dpy, Scr));
     XftTextExtents8(Dpy, msgfont, reinterpret_cast<const XftChar8*>(message.c_str()),
@@ -352,6 +357,9 @@ bool Panel::OnKeyPress(XEvent& event) {
     bool fieldTextChanged = true;
 
     XLookupString(&event.xkey, &ascii, 1, &keysym, &compstatus);
+    
+    // Check capslock
+    CapsLockOn = ((event.xkey.state & LockMask) != 0);
 
     Cursor(HIDE);
     switch(keysym){
