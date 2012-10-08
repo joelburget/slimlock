@@ -1,3 +1,8 @@
+NO LONGER MAINTAINED
+====================
+As of October 7 I (Joel Burget) have given up maintainership of this project.
+Feel free to use it but I am no longer fixing bugs.
+
 slimlock - unholy screen locker
 ===============================
 This is the Frankenstein's monster of screen lockers. I had the horrible
