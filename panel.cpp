@@ -219,7 +219,10 @@ void Panel::WrongPassword(int timeout) {
     OnExpose();
     SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, message,
                     &msgshadowcolor, shadowXOffset, shadowYOffset);
-    XBell(Dpy, 100);
+
+    if (cfg->getOption("bell") == "1") {
+      XBell(Dpy, 100);
+    }
 
     XFlush(Dpy);
     sleep(timeout);
