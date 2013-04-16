@@ -1,7 +1,9 @@
-NO LONGER MAINTAINED
-====================
-As of October 7 I (Joel Burget) have given up maintainership of this project.
-Feel free to use it but I am no longer fixing bugs.
+Important!
+==========
+As of October 7, 2012 I (Joel Burget) have given up maintainership of this
+project. Development is currently happening at
+https://github.com/dannyn/slimlock and as part of the original
+[slim project](http://git.berlios.de/cgi-bin/gitweb.cgi?p=slim;a=summary).
 
 slimlock - unholy screen locker
 ===============================
